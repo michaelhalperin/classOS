@@ -251,6 +251,54 @@ Replaced the single-column scrolling form with a proper **3-zone editor layout**
 
 ---
 
+## Session: April 10, 2026 — Calendar Feature
+
+### Calendar — Full Implementation
+**Status:** Complete  
+**New files created:**
+- `backend/src/models/CalendarEvent.js` — Mongoose model (classId, title, description, type, refId, startDate, endDate, allDay, color, createdBy)
+- `backend/src/routes/calendar.js` — all calendar routes + iCal feed generator
+- `frontend/src/api/calendar.js` — Axios API client + iCal URL helper
+- `frontend/src/pages/shared/Calendar.jsx` — full calendar page (used by both roles)
+- `frontend/src/pages/shared/` — new shared pages directory
+
+**Files modified:**
+- `backend/src/routes/assignments.js` — auto-sync CalendarEvent on POST/PUT/DELETE
+- `backend/src/routes/lessons.js` — clean up CalendarEvent on lesson DELETE
+- `backend/src/server.js` — registered `/calendar` routes
+- `frontend/src/router/index.jsx` — added `/teacher/calendar` and `/student/calendar` routes
+- `frontend/src/components/layout/Navbar.jsx` — added Calendar icon + nav links for both roles
+
+**What was built:**
+
+**Backend:**
+- `GET /calendar/:classId` — all events, auth required (teacher or enrolled student)
+- `POST /calendar/:classId` — create custom event (teacher only)
+- `PUT /calendar/:classId/:eventId` — edit custom event (teacher only)
+- `DELETE /calendar/:classId/:eventId` — delete custom event (teacher only)
+- `GET /calendar/:classId/feed.ics` — public iCal feed (RFC 5545), no auth required. Cache-Control: 1 hour.
+- Auto-sync: when an assignment with a `dueDate` is created or updated, a CalendarEvent of type `assignment` is upserted. When deleted, the CalendarEvent is removed.
+- Compound + unique partial indexes for efficient, collision-free queries.
+
+**Frontend:**
+- **Month view** — 6-week grid, events shown as color-coded pills (3 max per day + overflow), teacher can click any empty cell to create an event
+- **Week view** — 7-column weekly grid with per-day event lists, teacher can click any day
+- **Agenda view** — chronological list grouped by date with full event details
+- Animated view switcher (Framer Motion `layoutId`)
+- Date navigation (prev/next/today) with smart label (month name or week range)
+- Color legend for all 3 event types (lesson=blue, assignment=amber, custom=violet)
+- **Event detail modal** — read-only for students, edit + delete for teacher (custom events only)
+- **Create event modal** — title, description, start/end datetime, all-day toggle, color picker (7 preset colors)
+- **Subscribe panel** — shows public iCal URL, copy-to-clipboard, instructions for Google and Apple Calendar
+- All animations respect `useReducedMotion`
+
+**Design decisions:**
+- Lessons have no explicit date (only weekNumber) so they are NOT auto-synced; teachers can create custom calendar events for class sessions manually.
+- The iCal feed is public (no auth) by design — required for Google/Apple Calendar to subscribe via URL. Event types are exposed as CATEGORIES.
+- Custom events can be edited/deleted; auto-synced assignment/lesson events cannot (they update automatically).
+
+---
+
 ## Next Up
 _Tasks will be added here as they are assigned._
 

@@ -19,6 +19,7 @@ import answerRoutes from './routes/answers.js';
 import aiRoutes from './routes/ai.js';
 import lessonNoteRoutes from './routes/lessonNotes.js';
 import quizRoutes from './routes/quizzes.js';
+import calendarRoutes from './routes/calendar.js';
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -43,6 +44,7 @@ app.use('/answers', answerRoutes);
 // AI endpoints: 30 requests per minute per user
 app.use('/ai', rateLimit({ windowMs: 60_000, max: 30 }), aiRoutes);
 app.use('/quizzes', quizRoutes);
+app.use('/calendar', calendarRoutes);
 
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
 

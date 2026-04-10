@@ -20,6 +20,7 @@ export default defineConfig({
       '/ai': api,
       '/classes': api,
       '/quizzes': api,
+      '/calendar': api,
       '/uploads': api,
     },
   },

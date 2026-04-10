@@ -100,6 +100,13 @@ const ICONS = {
       <path d="M8 4v4l2.5 2.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   ),
+  Calendar: (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <rect x="2" y="3" width="12" height="12" rx="1.5" stroke="currentColor" strokeWidth="1.4"/>
+      <path d="M5 1v3M11 1v3M2 7h12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+      <path d="M5 10h2M9 10h2M5 13h2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+    </svg>
+  ),
 };
 
 // ─── Nav definitions ──────────────────────────────────────────────────────────
@@ -113,6 +120,7 @@ const teacherLinks = (classReady) => [
     { to: '/teacher/quizzes',     label: 'Quizzes'     },
     { to: '/teacher/exercises',   label: 'Exercises'   },
     { to: '/teacher/students',    label: 'Students'    },
+    { to: '/teacher/calendar',    label: 'Calendar'    },
   ] : []),
   { to: '/teacher/classes',  label: 'Classes'  },
   { to: '/teacher/settings', label: 'Settings' },
@@ -124,6 +132,7 @@ const studentLinks = [
   { to: '/student/due',        label: 'Due'        },
   { to: '/student/homework',   label: 'Homework'   },
   { to: '/student/quizzes',    label: 'Quizzes'    },
+  { to: '/student/calendar',   label: 'Calendar'   },
   { to: '/student/progress',   label: 'Progress'   },
   { to: '/student/settings',   label: 'Settings'   },
 ];

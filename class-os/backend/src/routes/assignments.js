@@ -4,6 +4,7 @@ import Assignment from '../models/Assignment.js';
 import Lesson from '../models/Lesson.js';
 import Classroom from '../models/Classroom.js';
 import Submission from '../models/Submission.js';
+import CalendarEvent from '../models/CalendarEvent.js';
 import { requireAuth, requireTeacher } from '../middleware/auth.js';
 import { lessonIdsForClass } from '../utils/classHelpers.js';
 
@@ -122,6 +123,23 @@ router.post('/', requireAuth, requireTeacher, async (req, res) => {
     if (!cls) return res.status(403).json({ message: 'Not allowed' });
 
     const assignment = await Assignment.create({ lessonId, title, instructions, dueDate });
+
+    // Auto-sync: upsert a CalendarEvent for this assignment
+    if (dueDate) {
+      await CalendarEvent.findOneAndUpdate(
+        { classId: cls._id, refId: assignment._id, type: 'assignment' },
+        {
+          title,
+          description: instructions ? instructions.slice(0, 200) : '',
+          startDate: new Date(dueDate),
+          allDay: true,
+          color: '#f59e0b',
+          createdBy: req.user._id,
+        },
+        { upsert: true, new: true, setDefaultsOnInsert: true }
+      );
+    }
+
     res.status(201).json(assignment);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -142,6 +160,27 @@ router.put('/:id', requireAuth, requireTeacher, async (req, res) => {
       new: true,
       runValidators: true,
     });
+
+    // Auto-sync: update or upsert the CalendarEvent when assignment changes
+    const updatedDueDate = req.body.dueDate ?? existing.dueDate;
+    const updatedTitle   = req.body.title ?? existing.title;
+    if (updatedDueDate) {
+      await CalendarEvent.findOneAndUpdate(
+        { classId: cls._id, refId: existing._id, type: 'assignment' },
+        {
+          title: updatedTitle,
+          startDate: new Date(updatedDueDate),
+          allDay: true,
+          color: '#f59e0b',
+          createdBy: req.user._id,
+        },
+        { upsert: true, new: true, setDefaultsOnInsert: true }
+      );
+    } else {
+      // Due date removed — delete the calendar event
+      await CalendarEvent.deleteOne({ classId: cls._id, refId: existing._id, type: 'assignment' });
+    }
+
     res.json(assignment);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -160,6 +199,8 @@ router.delete('/:id', requireAuth, requireTeacher, async (req, res) => {
 
     await Assignment.findByIdAndDelete(req.params.id);
     await Submission.deleteMany({ assignmentId: req.params.id });
+    // Remove auto-synced calendar event
+    await CalendarEvent.deleteOne({ refId: req.params.id, type: 'assignment' });
     res.json({ message: 'Assignment deleted' });
   } catch (err) {
     res.status(500).json({ message: err.message });

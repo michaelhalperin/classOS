@@ -94,7 +94,7 @@ export default function ClassesPage() {
             variants={shouldReduce ? undefined : itemVariants}
             className="rounded-lg border border-amber-200 bg-amber-50 text-amber-900 text-sm px-4 py-3 mb-6"
           >
-            Choose a class below (or from the menu in the top-right), then open the dashboard to use the other tabs.
+            Choose a class below , then open the dashboard to use the other tabs.
           </motion.div>
         )}
 

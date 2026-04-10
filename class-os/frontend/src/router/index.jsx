@@ -18,6 +18,7 @@ import TeacherSettings from '../pages/teacher/Settings.jsx';
 import TeacherClasses from '../pages/teacher/Classes.jsx';
 import Gradebook from '../pages/teacher/Gradebook.jsx';
 import TeacherQuizzes from '../pages/teacher/Quizzes.jsx';
+import Calendar from '../pages/shared/Calendar.jsx';
 
 // Student
 import StudentClasses from '../pages/student/Classes.jsx';
@@ -113,6 +114,9 @@ export default function AppRouter() {
         <Route path="/teacher/quizzes"
           element={<ProtectedRoute role="teacher"><TeacherClassGate><TeacherQuizzes /></TeacherClassGate></ProtectedRoute>}
         />
+        <Route path="/teacher/calendar"
+          element={<ProtectedRoute role="teacher"><TeacherClassGate><Calendar /></TeacherClassGate></ProtectedRoute>}
+        />
 
         {/* ── Student routes ─────────────────────────────── */}
         <Route path="/student/classes"
@@ -144,6 +148,9 @@ export default function AppRouter() {
         />
         <Route path="/student/quizzes"
           element={<ProtectedRoute role="student"><StudentQuizzes /></ProtectedRoute>}
+        />
+        <Route path="/student/calendar"
+          element={<ProtectedRoute role="student"><Calendar /></ProtectedRoute>}
         />
 
         {/* Default redirect */}

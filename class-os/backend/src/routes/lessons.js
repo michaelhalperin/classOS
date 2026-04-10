@@ -9,6 +9,7 @@ import Lesson from '../models/Lesson.js';
 import Classroom from '../models/Classroom.js';
 import LessonVisit from '../models/LessonVisit.js';
 import LessonNote from '../models/LessonNote.js';
+import CalendarEvent from '../models/CalendarEvent.js';
 import { requireAuth, requireTeacher } from '../middleware/auth.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -210,6 +211,8 @@ router.delete('/:id', requireAuth, requireTeacher, async (req, res) => {
 
     await LessonVisit.deleteMany({ lessonId: req.params.id });
     await LessonNote.deleteMany({ lessonId: req.params.id });
+    // Remove any auto-synced calendar event for this lesson
+    await CalendarEvent.deleteOne({ refId: req.params.id, type: 'lesson' });
     const lesson = await Lesson.findByIdAndDelete(req.params.id);
     res.json({ message: 'Lesson deleted' });
   } catch (err) {

@@ -1,3 +1,4 @@
+import { useCallback, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { motion, useReducedMotion } from 'motion/react';
@@ -30,6 +31,17 @@ export default function Curriculum() {
     enabled: Boolean(activeClassId),
   });
   const weeks = [...new Set(lessons.map((l) => l.weekNumber))].sort((a, b) => a - b);
+
+  /** Week numbers that are collapsed (hidden lesson grid). Empty set = all expanded. */
+  const [collapsedWeeks, setCollapsedWeeks] = useState(() => new Set());
+  const toggleWeekCollapsed = useCallback((week) => {
+    setCollapsedWeeks((prev) => {
+      const next = new Set(prev);
+      if (next.has(week)) next.delete(week);
+      else next.add(week);
+      return next;
+    });
+  }, []);
 
   const totalComplete = lessons.filter((l) => completed.includes(l._id)).length;
   const progress = lessons.length > 0 ? Math.round((totalComplete / lessons.length) * 100) : 0;
@@ -131,6 +143,9 @@ export default function Curriculum() {
                 const weekPct =
                   weekLessons.length > 0 ? Math.round((weekComplete / weekLessons.length) * 100) : 0;
 
+                const weekCollapsed = collapsedWeeks.has(week);
+                const weekPanelId = `curriculum-week-${week}-lessons`;
+
                 return (
                   <motion.section
                     key={week}
@@ -138,17 +153,49 @@ export default function Curriculum() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ ...spring, delay: 0.04 + weekIdx * 0.04 }}
                     className="overflow-hidden rounded-2xl border border-gray-200/90 bg-white shadow-sm"
+                    aria-labelledby={`curriculum-week-${week}-title`}
                   >
-                    <div className="border-b border-gray-100 bg-gray-50/80 px-4 py-4 sm:px-5 sm:py-4 md:px-6">
-                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                        <div>
-                          <h2 className="text-lg font-bold text-gray-900 md:text-xl">Week {week}</h2>
-                          <p className="mt-0.5 text-sm text-gray-600">
-                            {weekComplete} of {weekLessons.length} {weekLessons.length === 1 ? 'lesson' : 'lessons'}{' '}
-                            complete
-                          </p>
+                    <div className="border-b border-gray-100 bg-gray-50/80">
+                      <button
+                        type="button"
+                        onClick={() => toggleWeekCollapsed(week)}
+                        aria-labelledby={`curriculum-week-${week}-title`}
+                        className="flex w-full flex-col gap-3 px-4 py-4 text-left transition-colors hover:bg-gray-100/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-brand-600 sm:flex-row sm:items-center sm:justify-between sm:px-5 sm:py-4 md:px-6"
+                        aria-expanded={!weekCollapsed}
+                        aria-controls={weekPanelId}
+                      >
+                        <div className="flex min-w-0 items-start gap-3">
+                          <span
+                            className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-gray-500"
+                            aria-hidden
+                          >
+                            <motion.span
+                              animate={{ rotate: weekCollapsed ? -90 : 0 }}
+                              transition={shouldReduce ? { duration: 0 } : { type: 'spring', stiffness: 320, damping: 28 }}
+                              className="inline-block text-sm leading-none"
+                            >
+                              ▼
+                            </motion.span>
+                          </span>
+                          <div className="min-w-0">
+                            <h2
+                              id={`curriculum-week-${week}-title`}
+                              className="text-lg font-bold text-gray-900 md:text-xl"
+                            >
+                              Week {week}
+                            </h2>
+                            <p className="mt-0.5 text-sm text-gray-600">
+                              {weekComplete} of {weekLessons.length}{' '}
+                              {weekLessons.length === 1 ? 'lesson' : 'lessons'} complete
+                              <span className="text-gray-400"> · </span>
+                              <span className="tabular-nums font-medium text-gray-700">{weekPct}%</span>
+                            </p>
+                          </div>
                         </div>
-                        <div className="w-full sm:max-w-xs sm:flex-1 md:max-w-sm">
+                        <div
+                          className="pointer-events-none w-full pl-9 sm:max-w-xs sm:flex-1 sm:pl-0 md:max-w-sm"
+                          aria-hidden
+                        >
                           <div className="h-2 overflow-hidden rounded-full bg-gray-200/80">
                             {weekPct > 0 && (
                               <motion.div
@@ -159,12 +206,12 @@ export default function Curriculum() {
                               />
                             )}
                           </div>
-                          <p className="mt-1 text-right text-xs tabular-nums text-gray-500">{weekPct}%</p>
                         </div>
-                      </div>
+                      </button>
                     </div>
 
-                    <div className="p-4 sm:p-5 md:p-6">
+                    {!weekCollapsed && (
+                    <div className="p-4 sm:p-5 md:p-6" id={weekPanelId} role="region">
                       <motion.div
                         variants={shouldReduce ? undefined : sectionVariants}
                         initial={shouldReduce ? false : 'hidden'}
@@ -233,6 +280,7 @@ export default function Curriculum() {
                         })}
                       </motion.div>
                     </div>
+                    )}
                   </motion.section>
                 );
               })}
