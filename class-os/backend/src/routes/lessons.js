@@ -177,12 +177,10 @@ router.patch("/reorder", requireAuth, requireTeacher, async (req, res) => {
     const lessonIds = order.map((o) => o.id);
     const lessons = await Lesson.find({ _id: { $in: lessonIds }, classId });
     if (lessons.length !== order.length) {
-      return res
-        .status(400)
-        .json({
-          message:
-            "One or more lesson ids are invalid or do not belong to this class",
-        });
+      return res.status(400).json({
+        message:
+          "One or more lesson ids are invalid or do not belong to this class",
+      });
     }
 
     // Bulk-write new positions
@@ -215,11 +213,9 @@ router.post("/", requireAuth, requireTeacher, async (req, res) => {
       classId,
     } = req.body;
     if (!title || weekNumber == null || orderIndex == null || !classId) {
-      return res
-        .status(400)
-        .json({
-          message: "title, weekNumber, orderIndex, and classId are required",
-        });
+      return res.status(400).json({
+        message: "title, weekNumber, orderIndex, and classId are required",
+      });
     }
     if (!mongoose.Types.ObjectId.isValid(classId)) {
       return res.status(400).json({ message: "Invalid classId" });

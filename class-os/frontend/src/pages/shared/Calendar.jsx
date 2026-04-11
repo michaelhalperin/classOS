@@ -12,148 +12,31 @@ import {
   deleteCalendarEvent,
   getCalendarFeedUrl,
 } from "../../api/calendar.js";
-
-// ─── Constants ────────────────────────────────────────────────────────────────
-const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-const MONTHS = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
-
-const TYPE_CONFIG = {
-  lesson: {
-    label: "Lesson",
-    color: "bg-blue-500",
-    border: "border-blue-300",
-    text: "text-blue-700",
-    light: "bg-blue-50",
-  },
-  assignment: {
-    label: "Assignment",
-    color: "bg-amber-500",
-    border: "border-amber-300",
-    text: "text-amber-700",
-    light: "bg-amber-50",
-  },
-  custom: {
-    label: "Event",
-    color: "bg-violet-500",
-    border: "border-violet-300",
-    text: "text-violet-700",
-    light: "bg-violet-50",
-  },
-};
-
-const SPRING = { type: "spring", stiffness: 380, damping: 30 };
-/** Matches PageLayout pages (e.g. Settings, Curriculum) for route enter / content motion. */
-const pageSpring = { type: "spring", stiffness: 100, damping: 20 };
-const PRESET_COLORS = [
-  "#7c3aed",
-  "#2563eb",
-  "#16a34a",
-  "#dc2626",
-  "#f59e0b",
-  "#0891b2",
-  "#db2777",
-];
-
-// ─── Date helpers ─────────────────────────────────────────────────────────────
-function startOfMonth(d) {
-  return new Date(d.getFullYear(), d.getMonth(), 1);
-}
-function endOfMonth(d) {
-  return new Date(d.getFullYear(), d.getMonth() + 1, 0);
-}
-function addDays(d, n) {
-  const r = new Date(d);
-  r.setDate(r.getDate() + n);
-  return r;
-}
-function addMonths(d, n) {
-  const r = new Date(d);
-  r.setMonth(r.getMonth() + n);
-  return r;
-}
-function addWeeks(d, n) {
-  return addDays(d, n * 7);
-}
-/** Local calendar date at 00:00 (ignore time-of-day). */
-function startOfDay(d) {
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
-}
-/** Last millisecond of the local calendar day for `d`. */
-function endOfDay(d) {
-  const s = startOfDay(d);
-  return new Date(s.getFullYear(), s.getMonth(), s.getDate(), 23, 59, 59, 999);
-}
-function startOfWeek(d) {
-  const sod = startOfDay(d);
-  return addDays(sod, -sod.getDay());
-}
-function isSameDay(a, b) {
-  return (
-    a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate()
-  );
-}
-function isSameMonth(a, b) {
-  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth();
-}
-function isToday(d) {
-  return isSameDay(d, new Date());
-}
-
-function fmtDate(d) {
-  return `${MONTHS[d.getMonth()].slice(0, 3)} ${d.getDate()}, ${d.getFullYear()}`;
-}
-function fmtDateTime(d) {
-  const t = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  return `${fmtDate(d)} at ${t}`;
-}
-function toLocalDatetimeInput(d) {
-  if (!d) return "";
-  const dt = new Date(d);
-  const pad = (n) => String(n).padStart(2, "0");
-  return `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}T${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
-}
-
-/** Build the 6-week grid for a month view */
-function buildMonthGrid(currentDate) {
-  const first = startOfMonth(currentDate);
-  const last = endOfMonth(currentDate);
-  const start = startOfWeek(first);
-  const days = [];
-  let cur = start;
-  while (cur <= last || days.length % 7 !== 0 || days.length < 35) {
-    days.push(new Date(cur));
-    cur = addDays(cur, 1);
-    if (days.length > 42) break;
-  }
-  return days;
-}
-
-/** Get events that overlap a local calendar day (matches month + week columns). */
-function eventsOnDay(events, day) {
-  if (!Array.isArray(events)) return [];
-  const dayStart = startOfDay(day);
-  const dayEnd = endOfDay(day);
-  return events.filter((e) => {
-    const start = new Date(e.startDate);
-    const end = e.endDate ? new Date(e.endDate) : start;
-    return start <= dayEnd && end >= dayStart;
-  });
-}
+import {
+  WEEKDAY_LABELS_SHORT as DAYS,
+  MONTH_NAMES as MONTHS,
+  startOfMonth,
+  endOfMonth,
+  addDays,
+  addMonths,
+  addWeeks,
+  startOfWeek,
+  isSameMonth,
+  isToday,
+  fmtDate,
+  fmtDateTime,
+  toLocalDatetimeInput,
+  buildMonthGrid,
+  eventsOnDay,
+} from "../../utils/dates.js";
+import {
+  CALENDAR_EVENT_TYPE_STYLES as TYPE_CONFIG,
+  CALENDAR_PRESET_HEX_COLORS as PRESET_COLORS,
+} from "../../utils/calendarAppearance.js";
+import {
+  SPRING_SNAPPY as SPRING,
+  SPRING_PAGE as pageSpring,
+} from "../../utils/motionSprings.js";
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 

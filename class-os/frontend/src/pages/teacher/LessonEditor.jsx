@@ -21,30 +21,26 @@ import {
 import { polishLesson, getLessonInsights } from "../../api/ai.js";
 import { createExercise } from "../../api/exercises.js";
 import { fileIcon, formatBytes } from "../../utils/fileHelpers.js";
-
-// ─── Motion configs ───────────────────────────────────────────────────────────
-const SPRING = { type: "spring", stiffness: 300, damping: 28 };
-const SNAPPY = { type: "spring", stiffness: 400, damping: 30 };
-
-function formatMisconceptionForLesson(m) {
-  const title = String(m?.title || "").trim() || "Misconception";
-  const expl = String(m?.explanation || "").trim();
-  const addr = String(m?.howToAddress || "").trim();
-  let block = `#### ${title}\n\n${expl}`;
-  if (addr) block += `\n\n*How to address:* ${addr}`;
-  return block;
-}
-
-function lessonFormToPayload(v) {
-  return {
-    title: v.title,
-    content: v.content ?? "",
-    objectives: v.objectives ?? "",
-    misconceptionWarnings: v.misconceptionWarnings ?? "",
-    weekNumber: v.weekNumber,
-    orderIndex: v.orderIndex,
-  };
-}
+import {
+  SPRING_LESSON,
+  SPRING_LESSON_SNAPPY,
+} from "../../utils/motionSprings.js";
+import {
+  IconPlus,
+  IconEye,
+  IconEdit,
+  IconSparkle,
+  IconPaperclip,
+  IconTrash,
+  IconChevron,
+  IconList,
+  IconSliders,
+  IconDrag,
+} from "../../utils/icons/lessonEditorIcons.jsx";
+import {
+  formatMisconceptionForLesson,
+  lessonFormToPayload,
+} from "../../utils/lessonEditorPayload.js";
 
 // ─── Small reusable pieces ────────────────────────────────────────────────────
 function SectionLabel({ children }) {
@@ -62,196 +58,6 @@ function PanelBlock({ children, className = "" }) {
     >
       {children}
     </div>
-  );
-}
-
-// ─── Icons ────────────────────────────────────────────────────────────────────
-function IconPlus() {
-  return (
-    <svg
-      width="13"
-      height="13"
-      viewBox="0 0 13 13"
-      fill="none"
-      aria-hidden="true"
-    >
-      <path
-        d="M6.5 1v11M1 6.5h11"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-function IconEye() {
-  return (
-    <svg
-      width="14"
-      height="14"
-      viewBox="0 0 14 14"
-      fill="none"
-      aria-hidden="true"
-    >
-      <path
-        d="M1 7s2.5-4.5 6-4.5S13 7 13 7s-2.5 4.5-6 4.5S1 7 1 7z"
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinecap="round"
-      />
-      <circle cx="7" cy="7" r="1.5" stroke="currentColor" strokeWidth="1.4" />
-    </svg>
-  );
-}
-function IconEdit() {
-  return (
-    <svg
-      width="14"
-      height="14"
-      viewBox="0 0 14 14"
-      fill="none"
-      aria-hidden="true"
-    >
-      <path
-        d="M9.5 2.5l2 2L4 12H2v-2L9.5 2.5z"
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-function IconSparkle() {
-  return (
-    <svg
-      width="13"
-      height="13"
-      viewBox="0 0 13 13"
-      fill="none"
-      aria-hidden="true"
-    >
-      <path
-        d="M6.5 1l1 3.5L11 5.5l-3.5 1L6.5 10l-1-3.5L2 5.5l3.5-1L6.5 1z"
-        stroke="currentColor"
-        strokeWidth="1.3"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-function IconPaperclip() {
-  return (
-    <svg
-      width="13"
-      height="13"
-      viewBox="0 0 13 13"
-      fill="none"
-      aria-hidden="true"
-    >
-      <path
-        d="M11 5.5L5.5 11A3.182 3.182 0 011 6.5L6.5 1a2.121 2.121 0 013 3L4 9.5A1.06 1.06 0 012.5 8L8 2.5"
-        stroke="currentColor"
-        strokeWidth="1.3"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-function IconTrash() {
-  return (
-    <svg
-      width="13"
-      height="13"
-      viewBox="0 0 13 13"
-      fill="none"
-      aria-hidden="true"
-    >
-      <path
-        d="M2 3.5h9M5 3.5V2.5h3v1M4 3.5l.5 7h4l.5-7"
-        stroke="currentColor"
-        strokeWidth="1.3"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-function IconChevron({ dir = "down" }) {
-  return (
-    <svg
-      width="13"
-      height="13"
-      viewBox="0 0 13 13"
-      fill="none"
-      aria-hidden="true"
-      style={{ transform: dir === "up" ? "rotate(180deg)" : "none" }}
-    >
-      <path
-        d="M3 5l3.5 3.5L10 5"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-function IconList() {
-  return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 16 16"
-      fill="none"
-      aria-hidden="true"
-    >
-      <path
-        d="M2 4h12M2 8h12M2 12h9"
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-function IconSliders() {
-  return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 16 16"
-      fill="none"
-      aria-hidden="true"
-    >
-      <path
-        d="M2 4h12M5 4v2.5M11 4v5M2 10h12M8 10v4"
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinecap="round"
-      />
-      <circle cx="5" cy="10" r="1.2" fill="currentColor" />
-      <circle cx="11" cy="4" r="1.2" fill="currentColor" />
-    </svg>
-  );
-}
-function IconDrag() {
-  return (
-    <svg
-      width="12"
-      height="16"
-      viewBox="0 0 12 16"
-      fill="none"
-      aria-hidden="true"
-    >
-      <circle cx="4" cy="4" r="1" fill="currentColor" />
-      <circle cx="8" cy="4" r="1" fill="currentColor" />
-      <circle cx="4" cy="8" r="1" fill="currentColor" />
-      <circle cx="8" cy="8" r="1" fill="currentColor" />
-      <circle cx="4" cy="12" r="1" fill="currentColor" />
-      <circle cx="8" cy="12" r="1" fill="currentColor" />
-    </svg>
   );
 }
 
@@ -641,7 +447,7 @@ export default function LessonEditor() {
               }}
               whileHover={shouldReduce ? {} : { scale: 1.05 }}
               whileTap={shouldReduce ? {} : { scale: 0.95 }}
-              transition={SNAPPY}
+              transition={SPRING_LESSON_SNAPPY}
               className="touch-manipulation flex items-center gap-1.5 rounded-lg bg-brand-600 px-2.5 py-1.5 text-[12px] font-medium text-white transition-colors hover:bg-brand-700"
             >
               <IconPlus /> New
@@ -745,7 +551,11 @@ export default function LessonEditor() {
                           <motion.span
                             layoutId="lesson-list-active"
                             className="absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-full bg-brand-500"
-                            transition={shouldReduce ? { duration: 0 } : SNAPPY}
+                            transition={
+                              shouldReduce
+                                ? { duration: 0 }
+                                : SPRING_LESSON_SNAPPY
+                            }
                           />
                         )}
                         <span
@@ -864,7 +674,7 @@ export default function LessonEditor() {
                   }
                   whileHover={shouldReduce ? {} : { scale: 1.02 }}
                   whileTap={shouldReduce ? {} : { scale: 0.97 }}
-                  transition={SNAPPY}
+                  transition={SPRING_LESSON_SNAPPY}
                   className="btn-primary touch-manipulation px-3 py-1.5 text-sm md:px-4"
                 >
                   {saveMutation.isPending
@@ -1004,7 +814,9 @@ export default function LessonEditor() {
                   <motion.span
                     layoutId="panel-tab-indicator"
                     className="absolute bottom-0 left-2 right-2 h-0.5 rounded-full bg-brand-500"
-                    transition={shouldReduce ? { duration: 0 } : SNAPPY}
+                    transition={
+                      shouldReduce ? { duration: 0 } : SPRING_LESSON_SNAPPY
+                    }
                   />
                 )}
               </button>
@@ -1019,7 +831,7 @@ export default function LessonEditor() {
                 key="meta"
                 initial={shouldReduce ? false : { opacity: 0, x: 8 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={SPRING}
+                transition={SPRING_LESSON}
                 className="flex min-h-0 flex-1 flex-col gap-4"
               >
                 <PanelBlock className="shrink-0">
@@ -1103,7 +915,7 @@ export default function LessonEditor() {
                 key="ai"
                 initial={shouldReduce ? false : { opacity: 0, x: 8 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={SPRING}
+                transition={SPRING_LESSON}
                 className="space-y-3"
               >
                 {!selectedLesson ? (
@@ -1137,7 +949,7 @@ export default function LessonEditor() {
                           disabled={!!polishBusy}
                           whileHover={shouldReduce ? {} : { scale: 1.01 }}
                           whileTap={shouldReduce ? {} : { scale: 0.98 }}
-                          transition={SNAPPY}
+                          transition={SPRING_LESSON_SNAPPY}
                           className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg border border-gray-200 bg-white text-[12.5px] font-medium text-gray-700 hover:border-brand-200 hover:bg-brand-50 hover:text-brand-700 transition-colors disabled:opacity-40"
                         >
                           <span className="text-gray-400 text-[13px]">
@@ -1160,7 +972,7 @@ export default function LessonEditor() {
                         disabled={insightsLoading}
                         whileHover={shouldReduce ? {} : { scale: 1.01 }}
                         whileTap={shouldReduce ? {} : { scale: 0.98 }}
-                        transition={SNAPPY}
+                        transition={SPRING_LESSON_SNAPPY}
                         className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg border border-amber-200 bg-amber-50/70 text-[12.5px] font-medium text-amber-800 hover:bg-amber-100 transition-colors disabled:opacity-40"
                       >
                         <span className="text-[13px]">◎</span>
@@ -1392,7 +1204,7 @@ export default function LessonEditor() {
                 key="files"
                 initial={shouldReduce ? false : { opacity: 0, x: 8 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={SPRING}
+                transition={SPRING_LESSON}
                 className="space-y-3"
               >
                 {/* Upload button */}

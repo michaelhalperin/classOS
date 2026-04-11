@@ -47,12 +47,10 @@ router.post("/run", requireAuth, async (req, res) => {
 
     if (!submitRes.ok) {
       const text = await submitRes.text();
-      return res
-        .status(502)
-        .json({
-          message: `Judge0 submit failed: ${submitRes.status}`,
-          detail: text,
-        });
+      return res.status(502).json({
+        message: `Judge0 submit failed: ${submitRes.status}`,
+        detail: text,
+      });
     }
 
     const { token } = await submitRes.json();

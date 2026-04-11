@@ -322,11 +322,9 @@ router.patch("/me", requireAuth, async (req, res) => {
 
     if (newPassword != null && String(newPassword).length > 0) {
       if (!currentPassword) {
-        return res
-          .status(400)
-          .json({
-            message: "Current password is required to set a new password",
-          });
+        return res.status(400).json({
+          message: "Current password is required to set a new password",
+        });
       }
       if (String(newPassword).length < 6) {
         return res

@@ -13,6 +13,7 @@ import LessonVisit from "../models/LessonVisit.js";
 import QuizAttempt from "../models/QuizAttempt.js";
 import Quiz from "../models/Quiz.js";
 import { requireAuth, requireTeacher } from "../middleware/auth.js";
+import { localMondayWeekRange } from "../utils/dateHelpers.js";
 
 const router = express.Router();
 
@@ -153,13 +154,7 @@ router.get("/:id/insights", requireAuth, requireTeacher, async (req, res) => {
     }
     behind.sort((a, b) => b.missingCount - a.missingCount);
 
-    const startOfWeek = new Date(now);
-    const day = startOfWeek.getDay();
-    const diff = day === 0 ? -6 : 1 - day;
-    startOfWeek.setDate(startOfWeek.getDate() + diff);
-    startOfWeek.setHours(0, 0, 0, 0);
-    const endOfWeek = new Date(startOfWeek);
-    endOfWeek.setDate(endOfWeek.getDate() + 7);
+    const { start: startOfWeek, end: endOfWeek } = localMondayWeekRange(now);
 
     const dueThisWeek = assignments
       .filter(

@@ -42,11 +42,9 @@ router.get("/", requireAuth, async (req, res) => {
         return res.json(exercises);
       }
       if (!classId || !mongoose.Types.ObjectId.isValid(classId)) {
-        return res
-          .status(400)
-          .json({
-            message: "classId query parameter is required (or use lessonId)",
-          });
+        return res.status(400).json({
+          message: "classId query parameter is required (or use lessonId)",
+        });
       }
       const cls = await Classroom.findOne({
         _id: classId,

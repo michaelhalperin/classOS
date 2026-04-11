@@ -217,11 +217,9 @@ router.delete("/:id/retract", requireAuth, async (req, res) => {
     }
     // Can only retract if not yet graded
     if (sub.grade != null) {
-      return res
-        .status(409)
-        .json({
-          message: "Cannot retract a submission that has already been graded.",
-        });
+      return res.status(409).json({
+        message: "Cannot retract a submission that has already been graded.",
+      });
     }
     // Must have been submitted (not just a draft)
     if (!sub.submittedAt) {
