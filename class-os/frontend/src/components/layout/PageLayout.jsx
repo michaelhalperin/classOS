@@ -1,6 +1,13 @@
-import { createContext, useContext, useRef, useState, useEffect, useCallback } from 'react';
-import { useLocation } from 'react-router-dom';
-import Navbar from './Navbar.jsx';
+import {
+  createContext,
+  useContext,
+  useRef,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
+import { useLocation } from "react-router-dom";
+import Navbar from "./Navbar.jsx";
 
 /** Ref to the main column scroll container (not `document` — that’s where overflow-y-auto lives). */
 const MainColumnScrollRefContext = createContext(null);
@@ -8,27 +15,35 @@ export function useMainColumnScrollRef() {
   return useContext(MainColumnScrollRefContext);
 }
 
-const SIDEBAR_COLLAPSED_KEY = 'classos-sidebar-collapsed';
+const SIDEBAR_COLLAPSED_KEY = "classos-sidebar-collapsed";
 
 function readSidebarCollapsed() {
   try {
-    return window.localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === '1';
+    return window.localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "1";
   } catch {
     return false;
   }
 }
 
-export default function PageLayout({ children, title, actions, fullWidth, edgeToEdge, mainStickyHeader }) {
+export default function PageLayout({
+  children,
+  title,
+  actions,
+  fullWidth,
+  edgeToEdge,
+  mainStickyHeader,
+}) {
   const location = useLocation();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  const [desktopSidebarCollapsed, setDesktopSidebarCollapsed] = useState(readSidebarCollapsed);
+  const [desktopSidebarCollapsed, setDesktopSidebarCollapsed] =
+    useState(readSidebarCollapsed);
   const mainColumnScrollRef = useRef(null);
 
   const toggleDesktopSidebar = useCallback(() => {
     setDesktopSidebarCollapsed((v) => {
       const next = !v;
       try {
-        window.localStorage.setItem(SIDEBAR_COLLAPSED_KEY, next ? '1' : '0');
+        window.localStorage.setItem(SIDEBAR_COLLAPSED_KEY, next ? "1" : "0");
       } catch {
         /* ignore */
       }
@@ -43,7 +58,7 @@ export default function PageLayout({ children, title, actions, fullWidth, edgeTo
   useEffect(() => {
     if (!mobileNavOpen) return;
     const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = prev;
     };
@@ -58,8 +73,19 @@ export default function PageLayout({ children, title, actions, fullWidth, edgeTo
         onClick={() => setMobileNavOpen(true)}
         aria-label="Open navigation menu"
       >
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-          <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 20 20"
+          fill="none"
+          aria-hidden="true"
+        >
+          <path
+            d="M3 5h14M3 10h14M3 15h14"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+          />
         </svg>
       </button>
 
@@ -80,8 +106,19 @@ export default function PageLayout({ children, title, actions, fullWidth, edgeTo
                 onClick={() => setMobileNavOpen(false)}
                 aria-label="Close menu"
               >
-                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-                  <path d="M4 4l10 10M14 4L4 14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 18 18"
+                  fill="none"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M4 4l10 10M14 4L4 14"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                  />
                 </svg>
               </button>
             </div>
@@ -95,10 +132,13 @@ export default function PageLayout({ children, title, actions, fullWidth, edgeTo
       {/* ── Sidebar — desktop (block so Navbar fills width; collapsible rail) ── */}
       <div
         className={`relative z-20 hidden h-screen shrink-0 overflow-hidden transition-[width] duration-200 ease-out md:block md:sticky md:top-0 ${
-          desktopSidebarCollapsed ? 'w-[4.5rem]' : 'w-56'
+          desktopSidebarCollapsed ? "w-[4.5rem]" : "w-56"
         }`}
       >
-        <Navbar sidebarCollapsed={desktopSidebarCollapsed} onToggleSidebarCollapsed={toggleDesktopSidebar} />
+        <Navbar
+          sidebarCollapsed={desktopSidebarCollapsed}
+          onToggleSidebarCollapsed={toggleDesktopSidebar}
+        />
       </div>
 
       {/* ── Main content area ── */}
@@ -107,7 +147,9 @@ export default function PageLayout({ children, title, actions, fullWidth, edgeTo
           <main className="w-full flex-1 min-h-0 flex flex-col p-0">
             {(title || actions) && (
               <div className="flex items-center justify-between mb-8">
-                {title && <h1 className="text-2xl font-bold text-gray-900">{title}</h1>}
+                {title && (
+                  <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
+                )}
                 {actions && <div className="flex gap-3">{actions}</div>}
               </div>
             )}
@@ -116,18 +158,25 @@ export default function PageLayout({ children, title, actions, fullWidth, edgeTo
         </div>
       ) : (
         <MainColumnScrollRefContext.Provider value={mainColumnScrollRef}>
-          <div ref={mainColumnScrollRef} className="flex min-h-0 flex-1 min-w-0 flex-col overflow-y-auto">
+          <div
+            ref={mainColumnScrollRef}
+            className="flex min-h-0 flex-1 min-w-0 flex-col overflow-y-auto"
+          >
             {mainStickyHeader}
             <main
               className={`min-h-0 flex-1 ${
                 fullWidth
-                  ? 'w-full px-6 lg:px-10 py-8'
-                  : 'mx-auto max-w-6xl px-6 lg:px-10 py-8'
+                  ? "w-full px-6 lg:px-10 py-8"
+                  : "mx-auto max-w-6xl px-6 lg:px-10 py-8"
               }`}
             >
               {(title || actions) && (
                 <div className="mb-8 flex items-center justify-between">
-                  {title && <h1 className="text-2xl font-bold text-gray-900">{title}</h1>}
+                  {title && (
+                    <h1 className="text-2xl font-bold text-gray-900">
+                      {title}
+                    </h1>
+                  )}
                   {actions && <div className="flex gap-3">{actions}</div>}
                 </div>
               )}

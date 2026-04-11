@@ -1,6 +1,7 @@
 # Class OS — Setup Guide
 
 ## Prerequisites
+
 - Node.js 18+
 - MongoDB (local or Atlas)
 
@@ -9,6 +10,7 @@
 ## 1. Clone / open the project
 
 The project lives in two folders:
+
 - `backend/` — Express + MongoDB API
 - `frontend/` — React + Vite app
 
@@ -63,6 +65,7 @@ This creates:
 Open two terminals:
 
 **Terminal 1 — Backend:**
+
 ```bash
 cd backend
 npm run dev
@@ -70,6 +73,7 @@ npm run dev
 ```
 
 **Terminal 2 — Frontend:**
+
 ```bash
 cd frontend
 npm run dev

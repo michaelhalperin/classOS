@@ -1,13 +1,12 @@
-import api from './axios.js';
+import api from "./axios.js";
 
 export const getQuizzes = (params) =>
-  api.get('/quizzes', { params }).then((r) => r.data);
+  api.get("/quizzes", { params }).then((r) => r.data);
 
-export const getQuiz = (id) =>
-  api.get(`/quizzes/${id}`).then((r) => r.data);
+export const getQuiz = (id) => api.get(`/quizzes/${id}`).then((r) => r.data);
 
 export const createQuiz = (data) =>
-  api.post('/quizzes', data).then((r) => r.data);
+  api.post("/quizzes", data).then((r) => r.data);
 
 export const updateQuiz = (id, data) =>
   api.put(`/quizzes/${id}`, data).then((r) => r.data);

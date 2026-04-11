@@ -1,5 +1,5 @@
-import { Navigate } from 'react-router-dom';
-import { useClass } from '../../context/ClassContext.jsx';
+import { Navigate } from "react-router-dom";
+import { useClass } from "../../context/ClassContext.jsx";
 
 /** Teachers must pick a class (and have at least one) before Dashboard, Lessons, etc. */
 export default function TeacherClassGate({ children }) {

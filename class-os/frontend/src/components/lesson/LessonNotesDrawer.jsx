@@ -1,19 +1,24 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import Drawer from '../ui/Drawer.jsx';
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import Drawer from "../ui/Drawer.jsx";
 import {
   getLessonNotes,
   createLessonNote,
   deleteLessonNote,
-} from '../../api/lessonNotes.js';
-import LessonNoteRichEditor from './LessonNoteRichEditor.jsx';
+} from "../../api/lessonNotes.js";
+import LessonNoteRichEditor from "./LessonNoteRichEditor.jsx";
 
 /**
  * Multiple private notes per lesson (rich text). Query key `['lessonNotes', lessonId]`.
  */
-export default function LessonNotesDrawer({ lessonId, open, onOpenChange, lessonTitle }) {
+export default function LessonNotesDrawer({
+  lessonId,
+  open,
+  onOpenChange,
+  lessonTitle,
+}) {
   const qc = useQueryClient();
-  const queryKey = ['lessonNotes', lessonId];
+  const queryKey = ["lessonNotes", lessonId];
   const editorFlushRef = useRef(() => {});
 
   const bindEditorFlush = useCallback((api) => {
@@ -42,7 +47,7 @@ export default function LessonNotesDrawer({ lessonId, open, onOpenChange, lesson
 
   const createMutation = useMutation({
     mutationFn: () =>
-      createLessonNote(lessonId, { title: 'New note', content: '' }),
+      createLessonNote(lessonId, { title: "New note", content: "" }),
     onSuccess: ({ note }) => {
       qc.setQueryData(queryKey, (old) => ({
         notes: [...(old?.notes ?? []), note],
@@ -78,7 +83,7 @@ export default function LessonNotesDrawer({ lessonId, open, onOpenChange, lesson
 
   const subtitle = lessonTitle
     ? `Private to you · ${lessonTitle}`
-    : 'Only you can see these';
+    : "Only you can see these";
 
   const selected = notes.find((n) => n._id === selectedId);
 
@@ -86,71 +91,73 @@ export default function LessonNotesDrawer({ lessonId, open, onOpenChange, lesson
     <Drawer
       open={open}
       onClose={close}
-      title='My notes'
+      title="My notes"
       subtitle={subtitle}
-      tone='default'
-      bodyClassName='flex flex-col min-h-0'
+      tone="default"
+      bodyClassName="flex flex-col min-h-0"
     >
-      <div className='flex shrink-0 flex-col gap-2 border-b border-gray-100 px-4 py-3'>
-        <p className='text-xs text-gray-500'>
+      <div className="flex shrink-0 flex-col gap-2 border-b border-gray-100 px-4 py-3">
+        <p className="text-xs text-gray-500">
           Add several notes per lesson. Formatting is saved automatically.
         </p>
-        <div className='flex flex-wrap items-center gap-2'>
-          <div className='flex max-h-24 min-w-0 flex-1 flex-wrap gap-1.5 overflow-y-auto'>
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex max-h-24 min-w-0 flex-1 flex-wrap gap-1.5 overflow-y-auto">
             {notes.map((n) => (
               <button
                 key={n._id}
-                type='button'
+                type="button"
                 onClick={() => selectNote(n._id)}
                 className={`max-w-[10rem] truncate rounded-full border px-2.5 py-1 text-left text-xs font-medium transition-colors ${
                   n._id === selectedId
-                    ? 'border-teal-500 bg-teal-50 text-teal-900'
-                    : 'border-gray-200 bg-white text-gray-600 hover:border-teal-300 hover:text-teal-900'
+                    ? "border-teal-500 bg-teal-50 text-teal-900"
+                    : "border-gray-200 bg-white text-gray-600 hover:border-teal-300 hover:text-teal-900"
                 }`}
-                title={(n.title || 'Untitled').trim() || 'Untitled'}
+                title={(n.title || "Untitled").trim() || "Untitled"}
               >
-                {(n.title || 'Untitled').trim() || 'Untitled'}
+                {(n.title || "Untitled").trim() || "Untitled"}
               </button>
             ))}
           </div>
           <button
-            type='button'
+            type="button"
             onClick={() => {
               editorFlushRef.current();
               createMutation.mutate();
             }}
             disabled={createMutation.isPending || !lessonId}
-            className='shrink-0 rounded-full border border-teal-600 bg-teal-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-teal-700 disabled:opacity-50'
+            className="shrink-0 rounded-full border border-teal-600 bg-teal-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-teal-700 disabled:opacity-50"
           >
             + Add note
           </button>
         </div>
       </div>
 
-      <div className='flex min-h-0 flex-1 flex-col p-4'>
+      <div className="flex min-h-0 flex-1 flex-col p-4">
         {isLoading && !data ? (
-          <p className='text-sm text-gray-400'>Loading…</p>
+          <p className="text-sm text-gray-400">Loading…</p>
         ) : !selected ? (
-          <div className='flex flex-1 flex-col items-center justify-center gap-3 text-center'>
-            <p className='text-sm text-gray-500'>No notes yet for this lesson.</p>
+          <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center">
+            <p className="text-sm text-gray-500">
+              No notes yet for this lesson.
+            </p>
             <button
-              type='button'
+              type="button"
               onClick={() => createMutation.mutate()}
               disabled={createMutation.isPending}
-              className='btn-primary text-sm py-2 px-4'
+              className="btn-primary text-sm py-2 px-4"
             >
               Create your first note
             </button>
           </div>
         ) : (
           <>
-            <div className='mb-3 flex items-center justify-end gap-2'>
+            <div className="mb-3 flex items-center justify-end gap-2">
               <button
-                type='button'
+                type="button"
                 onClick={() => {
                   if (
                     window.confirm(
-                      'Delete this note permanently? This cannot be undone.'
+                      "Delete this note permanently? This cannot be undone.",
                     )
                   ) {
                     editorFlushRef.current();
@@ -158,7 +165,7 @@ export default function LessonNotesDrawer({ lessonId, open, onOpenChange, lesson
                   }
                 }}
                 disabled={deleteMutation.isPending}
-                className='text-xs font-medium text-red-600 hover:text-red-700 disabled:opacity-50'
+                className="text-xs font-medium text-red-600 hover:text-red-700 disabled:opacity-50"
               >
                 Delete this note
               </button>

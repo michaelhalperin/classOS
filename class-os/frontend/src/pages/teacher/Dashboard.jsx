@@ -1,21 +1,24 @@
-import { useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
-import { motion, useReducedMotion } from 'motion/react';
-import PageLayout from '../../components/layout/PageLayout.jsx';
-import { useClass } from '../../context/ClassContext.jsx';
-import { getLessons } from '../../api/lessons.js';
-import { getAssignments } from '../../api/assignments.js';
-import { getSubmissions } from '../../api/submissions.js';
-import { getStudents } from '../../api/students.js';
-import DashboardInsights from '../../components/teacher/DashboardInsights.jsx';
+import { useQuery } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
+import { motion, useReducedMotion } from "motion/react";
+import PageLayout from "../../components/layout/PageLayout.jsx";
+import { useClass } from "../../context/ClassContext.jsx";
+import { getLessons } from "../../api/lessons.js";
+import { getAssignments } from "../../api/assignments.js";
+import { getSubmissions } from "../../api/submissions.js";
+import { getStudents } from "../../api/students.js";
+import DashboardInsights from "../../components/teacher/DashboardInsights.jsx";
 
 // Animation configs
-const spring = { type: 'spring', stiffness: 100, damping: 20 };
-const snappy = { type: 'spring', stiffness: 300, damping: 28 };
+const spring = { type: "spring", stiffness: 100, damping: 20 };
+const snappy = { type: "spring", stiffness: 300, damping: 28 };
 
 const containerVariants = {
   hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.08, delayChildren: 0.05 } },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.08, delayChildren: 0.05 },
+  },
 };
 
 const itemVariants = {
@@ -33,28 +36,28 @@ export default function TeacherDashboard() {
   const { activeClassId, classes, isLoading: classesLoading } = useClass();
 
   const { data: lessons = [] } = useQuery({
-    queryKey: ['lessons', activeClassId],
+    queryKey: ["lessons", activeClassId],
     queryFn: () => getLessons(activeClassId),
     enabled: Boolean(activeClassId),
   });
   const { data: assignments = [] } = useQuery({
-    queryKey: ['assignments', activeClassId],
+    queryKey: ["assignments", activeClassId],
     queryFn: () => getAssignments(activeClassId),
     enabled: Boolean(activeClassId),
   });
   const { data: submissions = [] } = useQuery({
-    queryKey: ['submissions', activeClassId],
+    queryKey: ["submissions", activeClassId],
     queryFn: () => getSubmissions(activeClassId),
     enabled: Boolean(activeClassId),
   });
   const { data: students = [] } = useQuery({
-    queryKey: ['students', activeClassId],
+    queryKey: ["students", activeClassId],
     queryFn: () => getStudents(activeClassId),
     enabled: Boolean(activeClassId),
   });
 
   const sortedAssignments = [...assignments].sort(
-    (a, b) => new Date(a.dueDate || 0) - new Date(b.dueDate || 0)
+    (a, b) => new Date(a.dueDate || 0) - new Date(b.dueDate || 0),
   );
 
   const subMap = {};
@@ -66,18 +69,18 @@ export default function TeacherDashboard() {
   function getCellStatus(studentId, assignmentId) {
     const key = `${studentId}__${assignmentId}`;
     const sub = subMap[key];
-    if (!sub?.submittedAt) return 'missing';
-    if (sub.grade != null) return 'graded';
-    return 'submitted';
+    if (!sub?.submittedAt) return "missing";
+    if (sub.grade != null) return "graded";
+    return "submitted";
   }
 
   const cellColors = {
-    graded: 'bg-green-100 text-green-700 border-green-200',
-    submitted: 'bg-yellow-100 text-yellow-700 border-yellow-200',
-    missing: 'bg-red-50 text-red-400 border-red-100',
+    graded: "bg-green-100 text-green-700 border-green-200",
+    submitted: "bg-yellow-100 text-yellow-700 border-yellow-200",
+    missing: "bg-red-50 text-red-400 border-red-100",
   };
 
-  const cellLabels = { graded: '✓', submitted: '⏳', missing: '—' };
+  const cellLabels = { graded: "✓", submitted: "⏳", missing: "—" };
 
   const statsTotal = submissions.length;
   const statsGraded = submissions.filter((s) => s.grade != null).length;
@@ -91,9 +94,16 @@ export default function TeacherDashboard() {
     return (
       <PageLayout title="Teacher Dashboard">
         <div className="card text-center py-16 max-w-lg mx-auto">
-          <p className="text-gray-700 mb-2">You need a class before adding lessons or students.</p>
-          <p className="text-sm text-gray-500 mb-6">Everything in the teacher area is scoped to the class selected in the top bar.</p>
-          <Link to="/teacher/classes" className="btn-primary">Create a class</Link>
+          <p className="text-gray-700 mb-2">
+            You need a class before adding lessons or students.
+          </p>
+          <p className="text-sm text-gray-500 mb-6">
+            Everything in the teacher area is scoped to the class selected in
+            the top bar.
+          </p>
+          <Link to="/teacher/classes" className="btn-primary">
+            Create a class
+          </Link>
         </div>
       </PageLayout>
     );
@@ -104,22 +114,50 @@ export default function TeacherDashboard() {
       title="Teacher Dashboard"
       actions={
         <div className="flex gap-2">
-          <Link to="/teacher/lessons" className="btn-secondary">Manage Lessons</Link>
-          <Link to="/teacher/assignments" className="btn-primary">+ Assignment</Link>
+          <Link to="/teacher/lessons" className="btn-secondary">
+            Manage Lessons
+          </Link>
+          <Link to="/teacher/assignments" className="btn-primary">
+            + Assignment
+          </Link>
         </div>
       }
     >
       {/* Stats */}
       <motion.div
         variants={shouldReduce ? undefined : containerVariants}
-        initial={shouldReduce ? false : 'hidden'}
+        initial={shouldReduce ? false : "hidden"}
         animate="visible"
         className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8"
       >
-        <StatCard label="Total Students" value={students.length}  color="brand"  delay={0}   shouldReduce={shouldReduce} />
-        <StatCard label="Lessons"        value={lessons.length}   color="purple" delay={0.08} shouldReduce={shouldReduce} />
-        <StatCard label="Submissions"    value={statsTotal}       color="yellow" delay={0.16} shouldReduce={shouldReduce} />
-        <StatCard label="Needs Grading"  value={statsPending}     color="red"    delay={0.24} shouldReduce={shouldReduce} />
+        <StatCard
+          label="Total Students"
+          value={students.length}
+          color="brand"
+          delay={0}
+          shouldReduce={shouldReduce}
+        />
+        <StatCard
+          label="Lessons"
+          value={lessons.length}
+          color="purple"
+          delay={0.08}
+          shouldReduce={shouldReduce}
+        />
+        <StatCard
+          label="Submissions"
+          value={statsTotal}
+          color="yellow"
+          delay={0.16}
+          shouldReduce={shouldReduce}
+        />
+        <StatCard
+          label="Needs Grading"
+          value={statsPending}
+          color="red"
+          delay={0.24}
+          shouldReduce={shouldReduce}
+        />
       </motion.div>
 
       {activeClassId && <DashboardInsights classId={activeClassId} />}
@@ -132,7 +170,9 @@ export default function TeacherDashboard() {
           transition={{ ...spring, delay: 0.3 }}
           className="card overflow-x-auto"
         >
-          <h2 className="font-semibold text-gray-800 mb-4">Student Progress Grid</h2>
+          <h2 className="font-semibold text-gray-800 mb-4">
+            Student Progress Grid
+          </h2>
           <table className="min-w-full text-sm">
             <thead>
               <tr>
@@ -140,15 +180,31 @@ export default function TeacherDashboard() {
                   Student
                 </th>
                 {sortedAssignments.map((a) => (
-                  <th key={a._id} className="pb-3 px-2 font-medium text-gray-500 text-center whitespace-nowrap max-w-[100px]">
-                    <span className="block truncate text-xs" title={a.title}>{a.title}</span>
+                  <th
+                    key={a._id}
+                    className="pb-3 px-2 font-medium text-gray-500 text-center whitespace-nowrap max-w-[100px]"
+                  >
+                    <span className="block truncate text-xs" title={a.title}>
+                      {a.title}
+                    </span>
                   </th>
                 ))}
               </tr>
             </thead>
             <motion.tbody
-              variants={shouldReduce ? undefined : { visible: { transition: { staggerChildren: 0.05, delayChildren: 0.4 } } }}
-              initial={shouldReduce ? false : 'hidden'}
+              variants={
+                shouldReduce
+                  ? undefined
+                  : {
+                      visible: {
+                        transition: {
+                          staggerChildren: 0.05,
+                          delayChildren: 0.4,
+                        },
+                      },
+                    }
+              }
+              initial={shouldReduce ? false : "hidden"}
               animate="visible"
               className="divide-y divide-gray-50"
             >
@@ -163,7 +219,9 @@ export default function TeacherDashboard() {
                       <div className="w-7 h-7 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center text-xs font-semibold">
                         {student.name?.[0]}
                       </div>
-                      <span className="font-medium text-gray-800 whitespace-nowrap">{student.name}</span>
+                      <span className="font-medium text-gray-800 whitespace-nowrap">
+                        {student.name}
+                      </span>
                     </div>
                   </td>
                   {sortedAssignments.map((a) => {
@@ -173,15 +231,17 @@ export default function TeacherDashboard() {
                       <td key={a._id} className="py-2 px-2 text-center">
                         <span
                           title={
-                            status === 'graded'
+                            status === "graded"
                               ? `Grade: ${sub?.grade}/100`
-                              : status === 'submitted'
-                              ? 'Submitted — awaiting grade'
-                              : 'Not submitted'
+                              : status === "submitted"
+                                ? "Submitted — awaiting grade"
+                                : "Not submitted"
                           }
                           className={`inline-flex items-center justify-center w-8 h-8 rounded-lg border text-xs font-semibold cursor-default ${cellColors[status]}`}
                         >
-                          {status === 'graded' ? sub?.grade : cellLabels[status]}
+                          {status === "graded"
+                            ? sub?.grade
+                            : cellLabels[status]}
                         </span>
                       </td>
                     );
@@ -193,13 +253,16 @@ export default function TeacherDashboard() {
 
           <div className="mt-4 pt-3 border-t border-gray-100 flex gap-4 text-xs text-gray-500">
             <span className="flex items-center gap-1.5">
-              <span className="w-5 h-5 rounded bg-green-100 border border-green-200 inline-block" /> Graded
+              <span className="w-5 h-5 rounded bg-green-100 border border-green-200 inline-block" />{" "}
+              Graded
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="w-5 h-5 rounded bg-yellow-100 border border-yellow-200 inline-block" /> Submitted
+              <span className="w-5 h-5 rounded bg-yellow-100 border border-yellow-200 inline-block" />{" "}
+              Submitted
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="w-5 h-5 rounded bg-red-50 border border-red-100 inline-block" /> Missing
+              <span className="w-5 h-5 rounded bg-red-50 border border-red-100 inline-block" />{" "}
+              Missing
             </span>
           </div>
         </motion.div>
@@ -214,14 +277,26 @@ export default function TeacherDashboard() {
       >
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-semibold text-gray-800">Lessons</h2>
-          <Link to="/teacher/lessons" className="text-sm text-brand-600 hover:underline">View all →</Link>
+          <Link
+            to="/teacher/lessons"
+            className="text-sm text-brand-600 hover:underline"
+          >
+            View all →
+          </Link>
         </div>
         <motion.div
-          variants={shouldReduce ? undefined : {
-            hidden: { opacity: 0 },
-            visible: { opacity: 1, transition: { staggerChildren: 0.07, delayChildren: 0.5 } },
-          }}
-          initial={shouldReduce ? false : 'hidden'}
+          variants={
+            shouldReduce
+              ? undefined
+              : {
+                  hidden: { opacity: 0 },
+                  visible: {
+                    opacity: 1,
+                    transition: { staggerChildren: 0.07, delayChildren: 0.5 },
+                  },
+                }
+          }
+          initial={shouldReduce ? false : "hidden"}
           animate="visible"
           className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3"
         >
@@ -229,13 +304,17 @@ export default function TeacherDashboard() {
             <motion.div
               key={lesson._id}
               variants={shouldReduce ? undefined : itemVariants}
-              whileHover={shouldReduce ? undefined : { y: -2, transition: snappy }}
+              whileHover={
+                shouldReduce ? undefined : { y: -2, transition: snappy }
+              }
             >
               <Link
                 to={`/teacher/lessons/${lesson._id}`}
                 className="card hover:shadow-md transition-shadow group p-4 block"
               >
-                <span className="text-xs text-brand-500 font-medium">Week {lesson.weekNumber} · #{lesson.orderIndex}</span>
+                <span className="text-xs text-brand-500 font-medium">
+                  Week {lesson.weekNumber} · #{lesson.orderIndex}
+                </span>
                 <p className="mt-1 font-medium text-gray-900 group-hover:text-brand-600 transition-colors truncate">
                   {lesson.title}
                 </p>
@@ -250,17 +329,24 @@ export default function TeacherDashboard() {
 
 function StatCard({ label, value, color, delay, shouldReduce }) {
   const colors = {
-    brand:  'text-brand-700',
-    purple: 'text-purple-700',
-    yellow: 'text-yellow-700',
-    red:    'text-red-600',
+    brand: "text-brand-700",
+    purple: "text-purple-700",
+    yellow: "text-yellow-700",
+    red: "text-red-600",
   };
   return (
     <motion.div
       initial={shouldReduce ? false : { opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ ...spring, delay }}
-      whileHover={shouldReduce ? undefined : { y: -2, transition: { type: 'spring', stiffness: 300, damping: 28 } }}
+      whileHover={
+        shouldReduce
+          ? undefined
+          : {
+              y: -2,
+              transition: { type: "spring", stiffness: 300, damping: 28 },
+            }
+      }
       className="card p-4"
     >
       <p className="text-sm text-gray-500">{label}</p>

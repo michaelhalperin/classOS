@@ -1,9 +1,9 @@
-import express from 'express';
-import Quiz from '../models/Quiz.js';
-import QuizAttempt from '../models/QuizAttempt.js';
-import Lesson from '../models/Lesson.js';
-import Classroom from '../models/Classroom.js';
-import { requireAuth, requireTeacher } from '../middleware/auth.js';
+import express from "express";
+import Quiz from "../models/Quiz.js";
+import QuizAttempt from "../models/QuizAttempt.js";
+import Lesson from "../models/Lesson.js";
+import Classroom from "../models/Classroom.js";
+import { requireAuth, requireTeacher } from "../middleware/auth.js";
 
 const router = express.Router();
 
@@ -31,27 +31,32 @@ async function studentEnrolledInLesson(lessonId, studentId) {
 // ── Teacher: CRUD quizzes ─────────────────────────────────────────────────────
 
 // GET /quizzes?lessonId=  — list quizzes for a lesson
-router.get('/', requireAuth, async (req, res) => {
+router.get("/", requireAuth, async (req, res) => {
   try {
     const { lessonId, classId } = req.query;
 
-    if (req.user.role === 'teacher') {
+    if (req.user.role === "teacher") {
       if (!lessonId && !classId) {
-        return res.status(400).json({ message: 'lessonId or classId required' });
+        return res
+          .status(400)
+          .json({ message: "lessonId or classId required" });
       }
       if (lessonId) {
         const ok = await teacherOwnsLesson(lessonId, req.user._id);
-        if (!ok) return res.status(403).json({ message: 'Not allowed' });
+        if (!ok) return res.status(403).json({ message: "Not allowed" });
         const quizzes = await Quiz.find({ lessonId }).sort({ createdAt: 1 });
         return res.json(quizzes);
       }
       // by classId
-      const cls = await Classroom.findOne({ _id: classId, teacherId: req.user._id });
-      if (!cls) return res.status(403).json({ message: 'Not allowed' });
-      const lessons = await Lesson.find({ classId }).select('_id');
+      const cls = await Classroom.findOne({
+        _id: classId,
+        teacherId: req.user._id,
+      });
+      if (!cls) return res.status(403).json({ message: "Not allowed" });
+      const lessons = await Lesson.find({ classId }).select("_id");
       const lessonIds = lessons.map((l) => l._id);
       const quizzes = await Quiz.find({ lessonId: { $in: lessonIds } })
-        .populate('lessonId', 'title weekNumber')
+        .populate("lessonId", "title weekNumber")
         .sort({ createdAt: -1 });
       return res.json(quizzes);
     }
@@ -59,19 +64,28 @@ router.get('/', requireAuth, async (req, res) => {
     // Student: show published quizzes for lessons they're enrolled in
     if (lessonId) {
       const ok = await studentEnrolledInLesson(lessonId, req.user._id);
-      if (!ok) return res.status(403).json({ message: 'Not allowed' });
-      const quizzes = await Quiz.find({ lessonId, isPublished: true }).sort({ createdAt: 1 });
+      if (!ok) return res.status(403).json({ message: "Not allowed" });
+      const quizzes = await Quiz.find({ lessonId, isPublished: true }).sort({
+        createdAt: 1,
+      });
       // Strip correct answers for students
       return res.json(quizzes.map(safeQuiz));
     }
     // All enrolled classes
-    const rooms = await Classroom.find({ studentIds: req.user._id }).select('_id');
+    const rooms = await Classroom.find({ studentIds: req.user._id }).select(
+      "_id",
+    );
     const classIds = rooms.map((c) => c._id);
     if (classIds.length === 0) return res.json([]);
-    const lessons = await Lesson.find({ classId: { $in: classIds } }).select('_id');
+    const lessons = await Lesson.find({ classId: { $in: classIds } }).select(
+      "_id",
+    );
     const lessonIds = lessons.map((l) => l._id);
-    const quizzes = await Quiz.find({ lessonId: { $in: lessonIds }, isPublished: true })
-      .populate('lessonId', 'title weekNumber')
+    const quizzes = await Quiz.find({
+      lessonId: { $in: lessonIds },
+      isPublished: true,
+    })
+      .populate("lessonId", "title weekNumber")
       .sort({ createdAt: -1 });
     return res.json(quizzes.map(safeQuiz));
   } catch (err) {
@@ -80,20 +94,30 @@ router.get('/', requireAuth, async (req, res) => {
 });
 
 // GET /quizzes/:id
-router.get('/:id', requireAuth, async (req, res) => {
+router.get("/:id", requireAuth, async (req, res) => {
   try {
-    const quiz = await Quiz.findById(req.params.id).populate('lessonId', 'title');
-    if (!quiz) return res.status(404).json({ message: 'Quiz not found' });
+    const quiz = await Quiz.findById(req.params.id).populate(
+      "lessonId",
+      "title",
+    );
+    if (!quiz) return res.status(404).json({ message: "Quiz not found" });
 
-    if (req.user.role === 'teacher') {
-      const ok = await teacherOwnsLesson(quiz.lessonId._id || quiz.lessonId, req.user._id);
-      if (!ok) return res.status(403).json({ message: 'Not allowed' });
+    if (req.user.role === "teacher") {
+      const ok = await teacherOwnsLesson(
+        quiz.lessonId._id || quiz.lessonId,
+        req.user._id,
+      );
+      if (!ok) return res.status(403).json({ message: "Not allowed" });
       return res.json(quiz);
     }
 
-    if (!quiz.isPublished) return res.status(404).json({ message: 'Quiz not found' });
-    const ok = await studentEnrolledInLesson(quiz.lessonId._id || quiz.lessonId, req.user._id);
-    if (!ok) return res.status(403).json({ message: 'Not allowed' });
+    if (!quiz.isPublished)
+      return res.status(404).json({ message: "Quiz not found" });
+    const ok = await studentEnrolledInLesson(
+      quiz.lessonId._id || quiz.lessonId,
+      req.user._id,
+    );
+    if (!ok) return res.status(403).json({ message: "Not allowed" });
     res.json(safeQuiz(quiz));
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -101,19 +125,21 @@ router.get('/:id', requireAuth, async (req, res) => {
 });
 
 // POST /quizzes — teacher creates quiz
-router.post('/', requireAuth, requireTeacher, async (req, res) => {
+router.post("/", requireAuth, requireTeacher, async (req, res) => {
   try {
     const { lessonId, title, description, questions, isPublished } = req.body;
     if (!lessonId || !title) {
-      return res.status(400).json({ message: 'lessonId and title are required' });
+      return res
+        .status(400)
+        .json({ message: "lessonId and title are required" });
     }
     const ok = await teacherOwnsLesson(lessonId, req.user._id);
-    if (!ok) return res.status(403).json({ message: 'Not allowed' });
+    if (!ok) return res.status(403).json({ message: "Not allowed" });
 
     const quiz = await Quiz.create({
       lessonId,
       title: title.trim(),
-      description: description?.trim() || '',
+      description: description?.trim() || "",
       questions: sanitizeQuestions(questions || []),
       isPublished: Boolean(isPublished),
     });
@@ -124,12 +150,12 @@ router.post('/', requireAuth, requireTeacher, async (req, res) => {
 });
 
 // PUT /quizzes/:id — teacher updates quiz
-router.put('/:id', requireAuth, requireTeacher, async (req, res) => {
+router.put("/:id", requireAuth, requireTeacher, async (req, res) => {
   try {
     const quiz = await Quiz.findById(req.params.id);
-    if (!quiz) return res.status(404).json({ message: 'Quiz not found' });
+    if (!quiz) return res.status(404).json({ message: "Quiz not found" });
     const ok = await teacherOwnsLesson(quiz.lessonId, req.user._id);
-    if (!ok) return res.status(403).json({ message: 'Not allowed' });
+    if (!ok) return res.status(403).json({ message: "Not allowed" });
 
     const { title, description, questions, isPublished } = req.body;
     if (title != null) quiz.title = title.trim();
@@ -145,16 +171,16 @@ router.put('/:id', requireAuth, requireTeacher, async (req, res) => {
 });
 
 // DELETE /quizzes/:id — teacher deletes quiz + all attempts
-router.delete('/:id', requireAuth, requireTeacher, async (req, res) => {
+router.delete("/:id", requireAuth, requireTeacher, async (req, res) => {
   try {
     const quiz = await Quiz.findById(req.params.id);
-    if (!quiz) return res.status(404).json({ message: 'Quiz not found' });
+    if (!quiz) return res.status(404).json({ message: "Quiz not found" });
     const ok = await teacherOwnsLesson(quiz.lessonId, req.user._id);
-    if (!ok) return res.status(403).json({ message: 'Not allowed' });
+    if (!ok) return res.status(403).json({ message: "Not allowed" });
 
     await QuizAttempt.deleteMany({ quizId: quiz._id });
     await Quiz.findByIdAndDelete(quiz._id);
-    res.json({ message: 'Quiz deleted' });
+    res.json({ message: "Quiz deleted" });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -163,20 +189,28 @@ router.delete('/:id', requireAuth, requireTeacher, async (req, res) => {
 // ── Attempts ─────────────────────────────────────────────────────────────────
 
 // POST /quizzes/:id/attempt — student submits answers (one attempt per student per quiz)
-router.post('/:id/attempt', requireAuth, async (req, res) => {
+router.post("/:id/attempt", requireAuth, async (req, res) => {
   try {
-    if (req.user.role !== 'student') {
-      return res.status(403).json({ message: 'Only students can attempt quizzes' });
+    if (req.user.role !== "student") {
+      return res
+        .status(403)
+        .json({ message: "Only students can attempt quizzes" });
     }
     const quiz = await Quiz.findById(req.params.id);
-    if (!quiz || !quiz.isPublished) return res.status(404).json({ message: 'Quiz not found' });
+    if (!quiz || !quiz.isPublished)
+      return res.status(404).json({ message: "Quiz not found" });
     const ok = await studentEnrolledInLesson(quiz.lessonId, req.user._id);
-    if (!ok) return res.status(403).json({ message: 'Not enrolled' });
+    if (!ok) return res.status(403).json({ message: "Not enrolled" });
 
     // Prevent retakes — one attempt per student per quiz
-    const existing = await QuizAttempt.findOne({ quizId: quiz._id, studentId: req.user._id });
+    const existing = await QuizAttempt.findOne({
+      quizId: quiz._id,
+      studentId: req.user._id,
+    });
     if (existing) {
-      return res.status(409).json({ message: 'You have already attempted this quiz.' });
+      return res
+        .status(409)
+        .json({ message: "You have already attempted this quiz." });
     }
 
     const { answers = [] } = req.body; // [{ questionId, answer }]
@@ -185,15 +219,20 @@ router.post('/:id/attempt', requireAuth, async (req, res) => {
     const maxScore = quiz.questions.reduce((s, q) => s + (q.points || 1), 0);
 
     const scoredAnswers = quiz.questions.map((q) => {
-      const submitted = answers.find((a) => a.questionId?.toString() === q._id.toString());
-      const studentAns = (submitted?.answer ?? '').toString().trim().toLowerCase();
-      const correct = (q.correctAnswer ?? '').toString().trim().toLowerCase();
-      const isCorrect = q.type === 'short' ? null : studentAns === correct;
-      const pts = isCorrect ? (q.points || 1) : 0;
+      const submitted = answers.find(
+        (a) => a.questionId?.toString() === q._id.toString(),
+      );
+      const studentAns = (submitted?.answer ?? "")
+        .toString()
+        .trim()
+        .toLowerCase();
+      const correct = (q.correctAnswer ?? "").toString().trim().toLowerCase();
+      const isCorrect = q.type === "short" ? null : studentAns === correct;
+      const pts = isCorrect ? q.points || 1 : 0;
       if (isCorrect) score += pts;
       return {
         questionId: q._id,
-        answer: submitted?.answer ?? '',
+        answer: submitted?.answer ?? "",
         isCorrect,
         pointsEarned: pts,
       };
@@ -222,16 +261,16 @@ router.post('/:id/attempt', requireAuth, async (req, res) => {
 });
 
 // GET /quizzes/:id/attempts — teacher: all attempts; student: own attempt
-router.get('/:id/attempts', requireAuth, async (req, res) => {
+router.get("/:id/attempts", requireAuth, async (req, res) => {
   try {
     const quiz = await Quiz.findById(req.params.id);
-    if (!quiz) return res.status(404).json({ message: 'Quiz not found' });
+    if (!quiz) return res.status(404).json({ message: "Quiz not found" });
 
-    if (req.user.role === 'teacher') {
+    if (req.user.role === "teacher") {
       const ok = await teacherOwnsLesson(quiz.lessonId, req.user._id);
-      if (!ok) return res.status(403).json({ message: 'Not allowed' });
+      if (!ok) return res.status(403).json({ message: "Not allowed" });
       const attempts = await QuizAttempt.find({ quizId: quiz._id })
-        .populate('studentId', 'name email')
+        .populate("studentId", "name email")
         .sort({ submittedAt: -1 });
       return res.json(attempts);
     }
@@ -250,11 +289,13 @@ router.get('/:id/attempts', requireAuth, async (req, res) => {
 
 function sanitizeQuestions(questions) {
   return questions.map((q) => ({
-    text: String(q.text || '').trim(),
-    type: ['mcq', 'true_false', 'short'].includes(q.type) ? q.type : 'mcq',
-    options: Array.isArray(q.options) ? q.options.map((o) => String(o).trim()) : [],
-    correctAnswer: String(q.correctAnswer || '').trim(),
-    explanation: String(q.explanation || '').trim(),
+    text: String(q.text || "").trim(),
+    type: ["mcq", "true_false", "short"].includes(q.type) ? q.type : "mcq",
+    options: Array.isArray(q.options)
+      ? q.options.map((o) => String(o).trim())
+      : [],
+    correctAnswer: String(q.correctAnswer || "").trim(),
+    explanation: String(q.explanation || "").trim(),
     points: Number(q.points) || 1,
   }));
 }

@@ -1,8 +1,8 @@
-import { useState, useRef, useEffect } from 'react';
-import { useMutation } from '@tanstack/react-query';
-import { motion, AnimatePresence } from 'motion/react';
-import Drawer from '../ui/Drawer.jsx';
-import { tutorChat } from '../../api/ai.js';
+import { useState, useRef, useEffect } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { motion, AnimatePresence } from "motion/react";
+import Drawer from "../ui/Drawer.jsx";
+import { tutorChat } from "../../api/ai.js";
 
 export default function LessonTutor({
   lessonId,
@@ -10,19 +10,19 @@ export default function LessonTutor({
   open: openProp,
   onOpenChange,
   hideTrigger = false,
-  presentation = 'inline',
+  presentation = "inline",
 }) {
   const [internalOpen, setInternalOpen] = useState(false);
-  const controlled = typeof onOpenChange === 'function';
+  const controlled = typeof onOpenChange === "function";
   const open = controlled ? Boolean(openProp) : internalOpen;
   const setOpen = (next) => {
     if (controlled) {
-      onOpenChange(typeof next === 'function' ? next(open) : next);
+      onOpenChange(typeof next === "function" ? next(open) : next);
     } else {
       setInternalOpen(next);
     }
   };
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState("");
   const [messages, setMessages] = useState([]);
   const bottomRef = useRef(null);
 
@@ -31,38 +31,43 @@ export default function LessonTutor({
     onSuccess: (data, nextMessages) => {
       setMessages([
         ...nextMessages,
-        { role: 'assistant', content: data.reply },
+        { role: "assistant", content: data.reply },
       ]);
-      setInput('');
+      setInput("");
     },
     onError: (err) => {
-      const msg = err.response?.data?.message || err.message || 'Something went wrong.';
-      setMessages((prev) => [...prev, { role: 'assistant', content: `⚠️ ${msg}` }]);
+      const msg =
+        err.response?.data?.message || err.message || "Something went wrong.";
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: `⚠️ ${msg}` },
+      ]);
     },
   });
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, open]);
 
   const restartChat = () => {
     setMessages([]);
-    setInput('');
+    setInput("");
     mutation.reset();
   };
 
   const send = () => {
     const trimmed = input.trim();
     if (!trimmed || mutation.isPending) return;
-    const next = [...messages, { role: 'user', content: trimmed }];
+    const next = [...messages, { role: "user", content: trimmed }];
     setMessages(next);
-    setInput('');
+    setInput("");
     mutation.mutate(next);
   };
 
   const introLine = (
     <div className="px-3 py-2 border-b border-gray-100 text-xs text-gray-500 shrink-0">
-      Ask about <strong className="text-gray-700">{lessonTitle}</strong>. Answers use this lesson and your week’s other lesson titles as context.
+      Ask about <strong className="text-gray-700">{lessonTitle}</strong>.
+      Answers use this lesson and your week’s other lesson titles as context.
     </div>
   );
 
@@ -77,9 +82,9 @@ export default function LessonTutor({
         <div
           key={i}
           className={`text-sm rounded-lg px-3 py-2 max-w-[95%] whitespace-pre-wrap ${
-            m.role === 'user'
-              ? 'bg-brand-600 text-white ml-auto'
-              : 'bg-gray-100 text-gray-800 mr-auto'
+            m.role === "user"
+              ? "bg-brand-600 text-white ml-auto"
+              : "bg-gray-100 text-gray-800 mr-auto"
           }`}
         >
           {m.content}
@@ -102,10 +107,17 @@ export default function LessonTutor({
         placeholder="Type a question…"
         value={input}
         onChange={(e) => setInput(e.target.value)}
-        onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), send())}
+        onKeyDown={(e) =>
+          e.key === "Enter" && !e.shiftKey && (e.preventDefault(), send())
+        }
         disabled={mutation.isPending}
       />
-      <button type="button" className="btn-primary text-sm py-2 px-4" onClick={send} disabled={mutation.isPending || !input.trim()}>
+      <button
+        type="button"
+        className="btn-primary text-sm py-2 px-4"
+        onClick={send}
+        disabled={mutation.isPending || !input.trim()}
+      >
         Send
       </button>
     </div>
@@ -136,7 +148,7 @@ export default function LessonTutor({
     </>
   );
 
-  if (presentation === 'drawer') {
+  if (presentation === "drawer") {
     return (
       <>
         {!hideTrigger && (
@@ -149,9 +161,13 @@ export default function LessonTutor({
               <span className="font-semibold text-indigo-900 flex items-center gap-2">
                 <span aria-hidden>🎓</span>
                 Lesson tutor
-                <span className="text-xs font-normal text-indigo-600/80">(scoped to this lesson)</span>
+                <span className="text-xs font-normal text-indigo-600/80">
+                  (scoped to this lesson)
+                </span>
               </span>
-              <span className="text-indigo-600 text-sm">{open ? '▼' : '▶'}</span>
+              <span className="text-indigo-600 text-sm">
+                {open ? "▼" : "▶"}
+              </span>
             </button>
           </div>
         )}
@@ -174,7 +190,7 @@ export default function LessonTutor({
   }
 
   return (
-    <div className={hideTrigger ? (open ? 'mt-6' : '') : 'mt-6'}>
+    <div className={hideTrigger ? (open ? "mt-6" : "") : "mt-6"}>
       {!hideTrigger && (
         <button
           type="button"
@@ -184,9 +200,11 @@ export default function LessonTutor({
           <span className="font-semibold text-indigo-900 flex items-center gap-2">
             <span aria-hidden>🎓</span>
             Lesson tutor
-            <span className="text-xs font-normal text-indigo-600/80">(scoped to this lesson)</span>
+            <span className="text-xs font-normal text-indigo-600/80">
+              (scoped to this lesson)
+            </span>
           </span>
-          <span className="text-indigo-600 text-sm">{open ? '▼' : '▶'}</span>
+          <span className="text-indigo-600 text-sm">{open ? "▼" : "▶"}</span>
         </button>
       )}
 
@@ -194,7 +212,7 @@ export default function LessonTutor({
         {open && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
+            animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             className="overflow-hidden"
           >

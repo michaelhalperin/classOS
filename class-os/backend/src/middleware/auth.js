@@ -1,27 +1,27 @@
-import jwt from 'jsonwebtoken';
-import User from '../models/User.js';
+import jwt from "jsonwebtoken";
+import User from "../models/User.js";
 
 export async function requireAuth(req, res, next) {
   const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ message: 'No token provided' });
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({ message: "No token provided" });
   }
 
-  const token = authHeader.split(' ')[1];
+  const token = authHeader.split(" ")[1];
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id).select('-passwordHash');
-    if (!user) return res.status(401).json({ message: 'User not found' });
+    const user = await User.findById(decoded.id).select("-passwordHash");
+    if (!user) return res.status(401).json({ message: "User not found" });
     req.user = user;
     next();
   } catch (err) {
-    return res.status(401).json({ message: 'Invalid or expired token' });
+    return res.status(401).json({ message: "Invalid or expired token" });
   }
 }
 
 export function requireTeacher(req, res, next) {
-  if (req.user?.role !== 'teacher') {
-    return res.status(403).json({ message: 'Teacher access required' });
+  if (req.user?.role !== "teacher") {
+    return res.status(403).json({ message: "Teacher access required" });
   }
   next();
 }

@@ -1,17 +1,20 @@
-import { useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
-import { motion, useReducedMotion } from 'motion/react';
-import PageLayout from '../../components/layout/PageLayout.jsx';
-import { getAssignments } from '../../api/assignments.js';
-import { useClass } from '../../context/ClassContext.jsx';
+import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
+import { motion, useReducedMotion } from "motion/react";
+import PageLayout from "../../components/layout/PageLayout.jsx";
+import { getAssignments } from "../../api/assignments.js";
+import { useClass } from "../../context/ClassContext.jsx";
 
-const spring = { type: 'spring', stiffness: 120, damping: 20 };
-const snappy = { type: 'spring', stiffness: 300, damping: 28 };
+const spring = { type: "spring", stiffness: 120, damping: 20 };
+const snappy = { type: "spring", stiffness: 300, damping: 28 };
 
 const pageVariants = {
   hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.08, delayChildren: 0.04 } },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.08, delayChildren: 0.04 },
+  },
 };
 
 const sectionHeaderVariants = {
@@ -21,7 +24,10 @@ const sectionHeaderVariants = {
 
 const listVariants = {
   hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.05, delayChildren: 0.03 } },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.05, delayChildren: 0.03 },
+  },
 };
 
 const rowVariants = {
@@ -49,7 +55,7 @@ export default function Due() {
   const { activeClassId, classes, isLoading: classesLoading } = useClass();
 
   const { data: assignments = [], isLoading } = useQuery({
-    queryKey: ['assignments', activeClassId],
+    queryKey: ["assignments", activeClassId],
     queryFn: () => getAssignments(activeClassId || undefined),
     enabled: Boolean(activeClassId),
   });
@@ -97,8 +103,13 @@ export default function Due() {
       <PageLayout title="What's due">
         <div className="card text-center py-20 max-w-lg mx-auto">
           <p className="text-3xl mb-3">📅</p>
-          <h2 className="text-lg font-semibold text-gray-700 mb-1">Not enrolled in any class</h2>
-          <p className="text-sm text-gray-500">Ask your teacher to add you to a class — your due dates will show up here.</p>
+          <h2 className="text-lg font-semibold text-gray-700 mb-1">
+            Not enrolled in any class
+          </h2>
+          <p className="text-sm text-gray-500">
+            Ask your teacher to add you to a class — your due dates will show up
+            here.
+          </p>
         </div>
       </PageLayout>
     );
@@ -109,8 +120,12 @@ export default function Due() {
       <PageLayout title="What's due">
         <div className="card text-center py-20 max-w-lg mx-auto">
           <p className="text-3xl mb-3">📅</p>
-          <h2 className="text-lg font-semibold text-gray-700 mb-1">Pick a class first</h2>
-          <p className="text-sm text-gray-500">Use the class selector in the top bar to choose which class to view.</p>
+          <h2 className="text-lg font-semibold text-gray-700 mb-1">
+            Pick a class first
+          </h2>
+          <p className="text-sm text-gray-500">
+            Use the class selector in the top bar to choose which class to view.
+          </p>
         </div>
       </PageLayout>
     );
@@ -120,7 +135,11 @@ export default function Due() {
     <PageLayout
       title="What's due"
       actions={
-        <motion.div whileHover={shouldReduce ? undefined : { scale: 1.02 }} whileTap={shouldReduce ? undefined : { scale: 0.98 }} transition={snappy}>
+        <motion.div
+          whileHover={shouldReduce ? undefined : { scale: 1.02 }}
+          whileTap={shouldReduce ? undefined : { scale: 0.98 }}
+          transition={snappy}
+        >
           <Link to="/student/homework" className="btn-primary">
             Open Homework
           </Link>
@@ -133,8 +152,8 @@ export default function Due() {
         transition={spring}
         className="text-sm text-gray-500 mb-6 max-w-2xl"
       >
-        Incomplete assignments grouped by due date. Week runs Monday–Sunday. Times are based on due dates your teacher
-        set.
+        Incomplete assignments grouped by due date. Week runs Monday–Sunday.
+        Times are based on due dates your teacher set.
       </motion.p>
 
       {isLoading ? (
@@ -149,7 +168,7 @@ export default function Due() {
       ) : (
         <motion.div
           variants={shouldReduce ? undefined : pageVariants}
-          initial={shouldReduce ? false : 'hidden'}
+          initial={shouldReduce ? false : "hidden"}
           animate="visible"
           className="space-y-10"
         >
@@ -195,18 +214,23 @@ export default function Due() {
 
 function DueSection({ shouldReduce, title, emoji, tone, empty, items }) {
   const border =
-    tone === 'red'
-      ? 'border-red-100 bg-red-50/50'
-      : tone === 'amber'
-        ? 'border-amber-100 bg-amber-50/40'
-        : tone === 'brand'
-          ? 'border-brand-100 bg-brand-50/30'
-          : 'border-gray-100 bg-gray-50/50';
+    tone === "red"
+      ? "border-red-100 bg-red-50/50"
+      : tone === "amber"
+        ? "border-amber-100 bg-amber-50/40"
+        : tone === "brand"
+          ? "border-brand-100 bg-brand-50/30"
+          : "border-gray-100 bg-gray-50/50";
 
   return (
     <motion.section variants={shouldReduce ? undefined : sectionHeaderVariants}>
       <div className="flex items-center gap-2 mb-3">
-        <motion.span className="text-xl" aria-hidden whileHover={shouldReduce ? undefined : { scale: 1.12 }} transition={snappy}>
+        <motion.span
+          className="text-xl"
+          aria-hidden
+          whileHover={shouldReduce ? undefined : { scale: 1.12 }}
+          transition={snappy}
+        >
           {emoji}
         </motion.span>
         <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
@@ -223,7 +247,7 @@ function DueSection({ shouldReduce, title, emoji, tone, empty, items }) {
       ) : (
         <motion.ul
           variants={shouldReduce ? undefined : listVariants}
-          initial={shouldReduce ? false : 'hidden'}
+          initial={shouldReduce ? false : "hidden"}
           animate="visible"
           className={`rounded-xl border ${border} divide-y divide-gray-100/80 overflow-hidden shadow-sm`}
         >
@@ -231,7 +255,11 @@ function DueSection({ shouldReduce, title, emoji, tone, empty, items }) {
             <motion.li
               key={a._id}
               variants={shouldReduce ? undefined : rowVariants}
-              whileHover={shouldReduce ? undefined : { backgroundColor: 'rgba(255,255,255,0.65)' }}
+              whileHover={
+                shouldReduce
+                  ? undefined
+                  : { backgroundColor: "rgba(255,255,255,0.65)" }
+              }
               transition={spring}
               className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-4 py-3"
             >
@@ -240,23 +268,36 @@ function DueSection({ shouldReduce, title, emoji, tone, empty, items }) {
                 <p className="text-xs text-gray-500 truncate">
                   {a.lessonId?.title && <span>{a.lessonId.title}</span>}
                   {a.lessonId?.className && (
-                    <span className="text-gray-400"> · {a.lessonId.className}</span>
+                    <span className="text-gray-400">
+                      {" "}
+                      · {a.lessonId.className}
+                    </span>
                   )}
                 </p>
               </div>
               <div className="flex items-center gap-3 shrink-0">
                 {a.dueDate && (
-                  <time className="text-xs text-gray-500 whitespace-nowrap" dateTime={a.dueDate}>
-                    Due{' '}
-                    {new Date(a.dueDate).toLocaleDateString('en-US', {
-                      weekday: 'short',
-                      month: 'short',
-                      day: 'numeric',
+                  <time
+                    className="text-xs text-gray-500 whitespace-nowrap"
+                    dateTime={a.dueDate}
+                  >
+                    Due{" "}
+                    {new Date(a.dueDate).toLocaleDateString("en-US", {
+                      weekday: "short",
+                      month: "short",
+                      day: "numeric",
                     })}
                   </time>
                 )}
-                <motion.div whileHover={shouldReduce ? undefined : { scale: 1.03 }} whileTap={shouldReduce ? undefined : { scale: 0.97 }} transition={snappy}>
-                  <Link to="/student/homework" className="btn-secondary text-xs py-1.5 px-3 inline-block">
+                <motion.div
+                  whileHover={shouldReduce ? undefined : { scale: 1.03 }}
+                  whileTap={shouldReduce ? undefined : { scale: 0.97 }}
+                  transition={snappy}
+                >
+                  <Link
+                    to="/student/homework"
+                    className="btn-secondary text-xs py-1.5 px-3 inline-block"
+                  >
                     Go to Homework
                   </Link>
                 </motion.div>

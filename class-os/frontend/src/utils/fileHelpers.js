@@ -1,13 +1,14 @@
 /**
  * Returns an emoji icon for a given MIME type.
  */
-export function fileIcon(mimetype = '') {
-  if (mimetype === 'application/pdf') return '📄';
-  if (mimetype.startsWith('image/')) return '🖼️';
-  if (mimetype.includes('word')) return '📝';
-  if (mimetype.includes('presentation') || mimetype.includes('powerpoint')) return '📊';
-  if (mimetype.includes('zip')) return '🗜️';
-  return '📎';
+export function fileIcon(mimetype = "") {
+  if (mimetype === "application/pdf") return "📄";
+  if (mimetype.startsWith("image/")) return "🖼️";
+  if (mimetype.includes("word")) return "📝";
+  if (mimetype.includes("presentation") || mimetype.includes("powerpoint"))
+    return "📊";
+  if (mimetype.includes("zip")) return "🗜️";
+  return "📎";
 }
 
 /**

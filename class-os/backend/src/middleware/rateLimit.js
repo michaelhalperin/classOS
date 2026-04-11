@@ -25,7 +25,7 @@ export function rateLimit({ windowMs = 60_000, max = 20 } = {}) {
 
   return function rateLimitMiddleware(req, res, next) {
     // Identify by user id if authenticated, fall back to IP
-    const key = req.user?._id?.toString() || req.ip || 'anon';
+    const key = req.user?._id?.toString() || req.ip || "anon";
     const now = Date.now();
 
     let entry = store.get(key);
@@ -37,13 +37,13 @@ export function rateLimit({ windowMs = 60_000, max = 20 } = {}) {
     entry.count += 1;
 
     // Set standard rate-limit headers
-    res.setHeader('X-RateLimit-Limit', max);
-    res.setHeader('X-RateLimit-Remaining', Math.max(0, max - entry.count));
-    res.setHeader('X-RateLimit-Reset', Math.ceil(entry.resetAt / 1000));
+    res.setHeader("X-RateLimit-Limit", max);
+    res.setHeader("X-RateLimit-Remaining", Math.max(0, max - entry.count));
+    res.setHeader("X-RateLimit-Reset", Math.ceil(entry.resetAt / 1000));
 
     if (entry.count > max) {
       const retryAfterSec = Math.ceil((entry.resetAt - now) / 1000);
-      res.setHeader('Retry-After', retryAfterSec);
+      res.setHeader("Retry-After", retryAfterSec);
       return res.status(429).json({
         message: `Too many requests — please wait ${retryAfterSec}s before trying again.`,
       });

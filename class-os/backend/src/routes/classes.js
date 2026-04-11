@@ -1,18 +1,18 @@
-import express from 'express';
-import mongoose from 'mongoose';
-import Classroom from '../models/Classroom.js';
-import Lesson from '../models/Lesson.js';
-import Assignment from '../models/Assignment.js';
-import Exercise from '../models/Exercise.js';
-import Submission from '../models/Submission.js';
-import Question from '../models/Question.js';
-import Answer from '../models/Answer.js';
-import User from '../models/User.js';
-import LessonNote from '../models/LessonNote.js';
-import LessonVisit from '../models/LessonVisit.js';
-import QuizAttempt from '../models/QuizAttempt.js';
-import Quiz from '../models/Quiz.js';
-import { requireAuth, requireTeacher } from '../middleware/auth.js';
+import express from "express";
+import mongoose from "mongoose";
+import Classroom from "../models/Classroom.js";
+import Lesson from "../models/Lesson.js";
+import Assignment from "../models/Assignment.js";
+import Exercise from "../models/Exercise.js";
+import Submission from "../models/Submission.js";
+import Question from "../models/Question.js";
+import Answer from "../models/Answer.js";
+import User from "../models/User.js";
+import LessonNote from "../models/LessonNote.js";
+import LessonVisit from "../models/LessonVisit.js";
+import QuizAttempt from "../models/QuizAttempt.js";
+import Quiz from "../models/Quiz.js";
+import { requireAuth, requireTeacher } from "../middleware/auth.js";
 
 const router = express.Router();
 
@@ -50,14 +50,16 @@ export async function deleteClassContent(classId) {
 }
 
 // GET /classes — teacher: own classes; student: enrolled classes
-router.get('/', requireAuth, async (req, res) => {
+router.get("/", requireAuth, async (req, res) => {
   try {
-    if (req.user.role === 'teacher') {
-      const list = await Classroom.find({ teacherId: req.user._id }).sort({ createdAt: -1 });
+    if (req.user.role === "teacher") {
+      const list = await Classroom.find({ teacherId: req.user._id }).sort({
+        createdAt: -1,
+      });
       return res.json(list);
     }
     const list = await Classroom.find({ studentIds: req.user._id })
-      .populate('teacherId', 'name email')
+      .populate("teacherId", "name email")
       .sort({ createdAt: -1 });
     res.json(list);
   } catch (err) {
@@ -66,13 +68,14 @@ router.get('/', requireAuth, async (req, res) => {
 });
 
 // POST /classes — create class
-router.post('/', requireAuth, requireTeacher, async (req, res) => {
+router.post("/", requireAuth, requireTeacher, async (req, res) => {
   try {
     const { name, description } = req.body;
-    if (!name?.trim()) return res.status(400).json({ message: 'name is required' });
+    if (!name?.trim())
+      return res.status(400).json({ message: "name is required" });
     const cls = await Classroom.create({
       name: name.trim(),
-      description: (description && String(description)) || '',
+      description: (description && String(description)) || "",
       teacherId: req.user._id,
     });
     res.status(201).json(cls);
@@ -82,30 +85,34 @@ router.post('/', requireAuth, requireTeacher, async (req, res) => {
 });
 
 // GET /classes/:id/insights — teacher dashboard: health + analytics (before GET /:id)
-router.get('/:id/insights', requireAuth, requireTeacher, async (req, res) => {
+router.get("/:id/insights", requireAuth, requireTeacher, async (req, res) => {
   try {
     const classId = req.params.id;
     if (!mongoose.Types.ObjectId.isValid(classId)) {
-      return res.status(400).json({ message: 'Invalid class id' });
+      return res.status(400).json({ message: "Invalid class id" });
     }
     const cls = await getOwnedClassOr404(req.user._id, classId);
-    if (!cls) return res.status(404).json({ message: 'Class not found' });
+    if (!cls) return res.status(404).json({ message: "Class not found" });
 
-    await cls.populate('studentIds', 'name email lastLoginAt createdAt');
+    await cls.populate("studentIds", "name email lastLoginAt createdAt");
     const students = (cls.studentIds || []).slice();
     const n = students.length;
 
-    const lessons = await Lesson.find({ classId }).select('_id title');
+    const lessons = await Lesson.find({ classId }).select("_id title");
     const lessonIds = lessons.map((l) => l._id);
-    const lessonTitleById = Object.fromEntries(lessons.map((l) => [l._id.toString(), l.title]));
+    const lessonTitleById = Object.fromEntries(
+      lessons.map((l) => [l._id.toString(), l.title]),
+    );
 
-    const assignments = await Assignment.find({ lessonId: { $in: lessonIds } }).populate('lessonId', 'title');
+    const assignments = await Assignment.find({
+      lessonId: { $in: lessonIds },
+    }).populate("lessonId", "title");
 
     const assignmentIds = assignments.map((a) => a._id);
     const subs = await Submission.find({
       assignmentId: { $in: assignmentIds },
       submittedAt: { $exists: true, $ne: null },
-    }).select('studentId assignmentId submittedAt grade');
+    }).select("studentId assignmentId submittedAt grade");
 
     const STALE_DAYS = 7;
     const now = new Date();
@@ -136,7 +143,12 @@ router.get('/:id/insights', requireAuth, requireTeacher, async (req, res) => {
         if (!subByStudentAssignment.has(subKey(s._id, a._id))) missing += 1;
       }
       if (missing > 0) {
-        behind.push({ _id: s._id, name: s.name, email: s.email, missingCount: missing });
+        behind.push({
+          _id: s._id,
+          name: s.name,
+          email: s.email,
+          missingCount: missing,
+        });
       }
     }
     behind.sort((a, b) => b.missingCount - a.missingCount);
@@ -150,7 +162,12 @@ router.get('/:id/insights', requireAuth, requireTeacher, async (req, res) => {
     endOfWeek.setDate(endOfWeek.getDate() + 7);
 
     const dueThisWeek = assignments
-      .filter((a) => a.dueDate && new Date(a.dueDate) >= startOfWeek && new Date(a.dueDate) < endOfWeek)
+      .filter(
+        (a) =>
+          a.dueDate &&
+          new Date(a.dueDate) >= startOfWeek &&
+          new Date(a.dueDate) < endOfWeek,
+      )
       .map((a) => ({
         _id: a._id,
         title: a.title,
@@ -160,38 +177,58 @@ router.get('/:id/insights', requireAuth, requireTeacher, async (req, res) => {
 
     const nudgeMap = new Map();
     staleStudents.forEach((s) => {
-      nudgeMap.set(s.email, { name: s.name, email: s.email, reasons: ['No login in 7+ days'] });
+      nudgeMap.set(s.email, {
+        name: s.name,
+        email: s.email,
+        reasons: ["No login in 7+ days"],
+      });
     });
     behind.forEach((b) => {
       const prev = nudgeMap.get(b.email);
       if (prev) {
-        if (!prev.reasons.includes('Missing submissions')) prev.reasons.push('Missing submissions');
+        if (!prev.reasons.includes("Missing submissions"))
+          prev.reasons.push("Missing submissions");
       } else {
-        nudgeMap.set(b.email, { name: b.name, email: b.email, reasons: ['Missing submissions'] });
+        nudgeMap.set(b.email, {
+          name: b.name,
+          email: b.email,
+          reasons: ["Missing submissions"],
+        });
       }
     });
 
     const graded = subs.filter((s) => s.grade != null);
-    const buckets = { '0-59': 0, '60-69': 0, '70-79': 0, '80-89': 0, '90-100': 0 };
+    const buckets = {
+      "0-59": 0,
+      "60-69": 0,
+      "70-79": 0,
+      "80-89": 0,
+      "90-100": 0,
+    };
     graded.forEach((s) => {
       const g = s.grade;
-      if (g < 60) buckets['0-59'] += 1;
-      else if (g < 70) buckets['60-69'] += 1;
-      else if (g < 80) buckets['70-79'] += 1;
-      else if (g < 90) buckets['80-89'] += 1;
-      else buckets['90-100'] += 1;
+      if (g < 60) buckets["0-59"] += 1;
+      else if (g < 70) buckets["60-69"] += 1;
+      else if (g < 80) buckets["70-79"] += 1;
+      else if (g < 90) buckets["80-89"] += 1;
+      else buckets["90-100"] += 1;
     });
 
-    const assignmentById = Object.fromEntries(assignments.map((a) => [a._id.toString(), a]));
+    const assignmentById = Object.fromEntries(
+      assignments.map((a) => [a._id.toString(), a]),
+    );
     const latencies = [];
     graded.forEach((s) => {
       const a = assignmentById[String(s.assignmentId)];
       if (!a?.dueDate) return;
-      const ms = new Date(s.submittedAt).getTime() - new Date(a.dueDate).getTime();
+      const ms =
+        new Date(s.submittedAt).getTime() - new Date(a.dueDate).getTime();
       latencies.push(ms / 3600000);
     });
     const avgLatencyHours =
-      latencies.length > 0 ? latencies.reduce((acc, x) => acc + x, 0) / latencies.length : null;
+      latencies.length > 0
+        ? latencies.reduce((acc, x) => acc + x, 0) / latencies.length
+        : null;
     const sortedLat = [...latencies].sort((a, b) => a - b);
     const medianLatencyHours =
       sortedLat.length > 0 ? sortedLat[Math.floor(sortedLat.length / 2)] : null;
@@ -213,7 +250,9 @@ router.get('/:id/insights', requireAuth, requireTeacher, async (req, res) => {
       })
       .sort((a, b) => b.missingRate - a.missingRate);
 
-    const visits = await LessonVisit.find({ lessonId: { $in: lessonIds } }).select('lessonId totalSeconds');
+    const visits = await LessonVisit.find({
+      lessonId: { $in: lessonIds },
+    }).select("lessonId totalSeconds");
     const timeByLesson = {};
     visits.forEach((v) => {
       const id = v.lessonId.toString();
@@ -249,20 +288,26 @@ router.get('/:id/insights', requireAuth, requireTeacher, async (req, res) => {
 });
 
 // GET /classes/:id — detail + populated students (teacher or enrolled student)
-router.get('/:id', requireAuth, async (req, res) => {
+router.get("/:id", requireAuth, async (req, res) => {
   try {
-    const cls = await Classroom.findById(req.params.id).populate('studentIds', 'name email createdAt lastLoginAt');
-    if (!cls) return res.status(404).json({ message: 'Class not found' });
+    const cls = await Classroom.findById(req.params.id).populate(
+      "studentIds",
+      "name email createdAt lastLoginAt",
+    );
+    if (!cls) return res.status(404).json({ message: "Class not found" });
 
-    if (req.user.role === 'teacher') {
+    if (req.user.role === "teacher") {
       if (cls.teacherId.toString() !== req.user._id.toString()) {
-        return res.status(403).json({ message: 'Not allowed' });
+        return res.status(403).json({ message: "Not allowed" });
       }
       return res.json(cls);
     }
 
-    const enrolled = cls.studentIds.some((s) => s._id.toString() === req.user._id.toString());
-    if (!enrolled) return res.status(403).json({ message: 'Not enrolled in this class' });
+    const enrolled = cls.studentIds.some(
+      (s) => s._id.toString() === req.user._id.toString(),
+    );
+    if (!enrolled)
+      return res.status(403).json({ message: "Not enrolled in this class" });
     res.json(cls);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -270,10 +315,10 @@ router.get('/:id', requireAuth, async (req, res) => {
 });
 
 // PATCH /classes/:id
-router.patch('/:id', requireAuth, requireTeacher, async (req, res) => {
+router.patch("/:id", requireAuth, requireTeacher, async (req, res) => {
   try {
     const cls = await getOwnedClassOr404(req.user._id, req.params.id);
-    if (!cls) return res.status(404).json({ message: 'Class not found' });
+    if (!cls) return res.status(404).json({ message: "Class not found" });
     const { name, description } = req.body;
     if (name != null) cls.name = String(name).trim();
     if (description != null) cls.description = String(description);
@@ -285,27 +330,27 @@ router.patch('/:id', requireAuth, requireTeacher, async (req, res) => {
 });
 
 // DELETE /classes/:id — delete class and all its lessons/content
-router.delete('/:id', requireAuth, requireTeacher, async (req, res) => {
+router.delete("/:id", requireAuth, requireTeacher, async (req, res) => {
   try {
     const cls = await getOwnedClassOr404(req.user._id, req.params.id);
-    if (!cls) return res.status(404).json({ message: 'Class not found' });
+    if (!cls) return res.status(404).json({ message: "Class not found" });
     await deleteClassContent(cls._id);
     await Classroom.findByIdAndDelete(cls._id);
-    res.json({ message: 'Class deleted' });
+    res.json({ message: "Class deleted" });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
 // POST /classes/:id/students — enroll an existing student account (by email only; they sign up themselves)
-router.post('/:id/students', requireAuth, requireTeacher, async (req, res) => {
+router.post("/:id/students", requireAuth, requireTeacher, async (req, res) => {
   try {
     const classroom = await getOwnedClassOr404(req.user._id, req.params.id);
-    if (!classroom) return res.status(404).json({ message: 'Class not found' });
+    if (!classroom) return res.status(404).json({ message: "Class not found" });
 
     const { email } = req.body;
     if (!email?.trim()) {
-      return res.status(400).json({ message: 'email is required' });
+      return res.status(400).json({ message: "email is required" });
     }
 
     const emailNorm = String(email).trim().toLowerCase();
@@ -314,15 +359,19 @@ router.post('/:id/students', requireAuth, requireTeacher, async (req, res) => {
     if (!student) {
       return res.status(404).json({
         message:
-          'No account with this email. The student must create their own account (Sign up) before you can add them.',
+          "No account with this email. The student must create their own account (Sign up) before you can add them.",
       });
     }
-    if (student.role !== 'student') {
-      return res.status(400).json({ message: 'This email belongs to a non-student account' });
+    if (student.role !== "student") {
+      return res
+        .status(400)
+        .json({ message: "This email belongs to a non-student account" });
     }
 
     if (classroom.studentIds.some((id) => id.equals(student._id))) {
-      return res.status(409).json({ message: 'Student is already in this class' });
+      return res
+        .status(409)
+        .json({ message: "Student is already in this class" });
     }
 
     classroom.studentIds.push(student._id);
@@ -341,57 +390,75 @@ router.post('/:id/students', requireAuth, requireTeacher, async (req, res) => {
 });
 
 // DELETE .../students/:studentId/account — must be registered before .../students/:studentId
-router.delete('/:id/students/:studentId/account', requireAuth, requireTeacher, async (req, res) => {
-  try {
-    const classroom = await getOwnedClassOr404(req.user._id, req.params.id);
-    if (!classroom) return res.status(404).json({ message: 'Class not found' });
+router.delete(
+  "/:id/students/:studentId/account",
+  requireAuth,
+  requireTeacher,
+  async (req, res) => {
+    try {
+      const classroom = await getOwnedClassOr404(req.user._id, req.params.id);
+      if (!classroom)
+        return res.status(404).json({ message: "Class not found" });
 
-    const sid = req.params.studentId;
-    if (!mongoose.Types.ObjectId.isValid(sid)) {
-      return res.status(400).json({ message: 'Invalid student id' });
+      const sid = req.params.studentId;
+      if (!mongoose.Types.ObjectId.isValid(sid)) {
+        return res.status(400).json({ message: "Invalid student id" });
+      }
+
+      if (!classroom.studentIds.some((id) => id.toString() === sid)) {
+        return res.status(404).json({ message: "Student not in this class" });
+      }
+
+      const student = await User.findOne({ _id: sid, role: "student" });
+      if (!student)
+        return res.status(404).json({ message: "Student not found" });
+
+      await Submission.deleteMany({ studentId: sid });
+      await LessonNote.deleteMany({ userId: sid });
+      await LessonVisit.deleteMany({ userId: sid });
+      await QuizAttempt.deleteMany({ studentId: sid });
+      await Classroom.updateMany(
+        { studentIds: sid },
+        { $pull: { studentIds: sid } },
+      );
+      await User.findByIdAndDelete(sid);
+
+      res.json({ message: "Student account deleted" });
+    } catch (err) {
+      res.status(500).json({ message: err.message });
     }
-
-    if (!classroom.studentIds.some((id) => id.toString() === sid)) {
-      return res.status(404).json({ message: 'Student not in this class' });
-    }
-
-    const student = await User.findOne({ _id: sid, role: 'student' });
-    if (!student) return res.status(404).json({ message: 'Student not found' });
-
-    await Submission.deleteMany({ studentId: sid });
-    await LessonNote.deleteMany({ userId: sid });
-    await LessonVisit.deleteMany({ userId: sid });
-    await QuizAttempt.deleteMany({ studentId: sid });
-    await Classroom.updateMany({ studentIds: sid }, { $pull: { studentIds: sid } });
-    await User.findByIdAndDelete(sid);
-
-    res.json({ message: 'Student account deleted' });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
+  },
+);
 
 // DELETE /classes/:classId/students/:studentId — remove from class only (unenroll)
-router.delete('/:id/students/:studentId', requireAuth, requireTeacher, async (req, res) => {
-  try {
-    const classroom = await getOwnedClassOr404(req.user._id, req.params.id);
-    if (!classroom) return res.status(404).json({ message: 'Class not found' });
+router.delete(
+  "/:id/students/:studentId",
+  requireAuth,
+  requireTeacher,
+  async (req, res) => {
+    try {
+      const classroom = await getOwnedClassOr404(req.user._id, req.params.id);
+      if (!classroom)
+        return res.status(404).json({ message: "Class not found" });
 
-    const sid = req.params.studentId;
-    if (!mongoose.Types.ObjectId.isValid(sid)) {
-      return res.status(400).json({ message: 'Invalid student id' });
-    }
+      const sid = req.params.studentId;
+      if (!mongoose.Types.ObjectId.isValid(sid)) {
+        return res.status(400).json({ message: "Invalid student id" });
+      }
 
-    const before = classroom.studentIds.length;
-    classroom.studentIds = classroom.studentIds.filter((id) => id.toString() !== sid);
-    if (classroom.studentIds.length === before) {
-      return res.status(404).json({ message: 'Student not in this class' });
+      const before = classroom.studentIds.length;
+      classroom.studentIds = classroom.studentIds.filter(
+        (id) => id.toString() !== sid,
+      );
+      if (classroom.studentIds.length === before) {
+        return res.status(404).json({ message: "Student not in this class" });
+      }
+      await classroom.save();
+      res.json({ message: "Removed from class" });
+    } catch (err) {
+      res.status(500).json({ message: err.message });
     }
-    await classroom.save();
-    res.json({ message: 'Removed from class' });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
+  },
+);
 
 export default router;

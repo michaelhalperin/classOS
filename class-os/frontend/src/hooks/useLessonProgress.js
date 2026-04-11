@@ -1,12 +1,12 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import {
   getCompletedLessonIds,
   patchLessonCompleted,
   syncLegacyCompletedLessons,
-} from '../api/lessonProgress.js';
+} from "../api/lessonProgress.js";
 
-const LEGACY_KEY = 'class-os-completed';
+const LEGACY_KEY = "class-os-completed";
 
 /** One-time legacy localStorage → API migration; shared across all hook instances. */
 let legacyMigrationHandled = false;
@@ -15,7 +15,7 @@ export function useLessonProgress() {
   const queryClient = useQueryClient();
 
   const query = useQuery({
-    queryKey: ['lessonProgress'],
+    queryKey: ["lessonProgress"],
     queryFn: getCompletedLessonIds,
   });
 
@@ -50,7 +50,7 @@ export function useLessonProgress() {
           } catch {
             /* ignore */
           }
-          queryClient.invalidateQueries({ queryKey: ['lessonProgress'] });
+          queryClient.invalidateQueries({ queryKey: ["lessonProgress"] });
         })
         .catch(() => {});
     } catch {
@@ -59,9 +59,10 @@ export function useLessonProgress() {
   }, [query.isSuccess, query.data, queryClient]);
 
   const mutation = useMutation({
-    mutationFn: ({ lessonId, completed }) => patchLessonCompleted(lessonId, completed),
+    mutationFn: ({ lessonId, completed }) =>
+      patchLessonCompleted(lessonId, completed),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['lessonProgress'] });
+      queryClient.invalidateQueries({ queryKey: ["lessonProgress"] });
     },
   });
 

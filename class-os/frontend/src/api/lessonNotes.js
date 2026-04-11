@@ -1,4 +1,4 @@
-import api from './axios.js';
+import api from "./axios.js";
 
 /** @returns {Promise<{ notes: Array<{_id, title, content, createdAt, updatedAt}> }>} */
 export function getLessonNotes(lessonId) {
@@ -15,7 +15,9 @@ export function createLessonNote(lessonId, payload = {}) {
 
 /** @returns {Promise<{ note: object }>} */
 export function updateLessonNote(lessonId, noteId, payload) {
-  return api.put(`/lesson-notes/${lessonId}/${noteId}`, payload).then((r) => r.data);
+  return api
+    .put(`/lesson-notes/${lessonId}/${noteId}`, payload)
+    .then((r) => r.data);
 }
 
 export function deleteLessonNote(lessonId, noteId) {

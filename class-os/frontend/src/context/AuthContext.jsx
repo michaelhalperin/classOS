@@ -1,6 +1,12 @@
-import { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { jwtDecode } from 'jwt-decode';
-import { getCurrentUser } from '../api/auth.js';
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useEffect,
+} from "react";
+import { jwtDecode } from "jwt-decode";
+import { getCurrentUser } from "../api/auth.js";
 
 const AuthContext = createContext(null);
 
@@ -8,11 +14,11 @@ const AuthContext = createContext(null);
 // This lets teacher and student be logged in simultaneously in different windows.
 function getInitialUser() {
   try {
-    const token = sessionStorage.getItem('token');
+    const token = sessionStorage.getItem("token");
     if (!token) return null;
     const decoded = jwtDecode(token);
     if (decoded.exp * 1000 < Date.now()) {
-      sessionStorage.removeItem('token');
+      sessionStorage.removeItem("token");
       return null;
     }
     return decoded;
@@ -23,17 +29,17 @@ function getInitialUser() {
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(getInitialUser);
-  const [token, setToken] = useState(() => sessionStorage.getItem('token'));
+  const [token, setToken] = useState(() => sessionStorage.getItem("token"));
 
   const login = useCallback((tokenStr, userData) => {
-    sessionStorage.setItem('token', tokenStr);
+    sessionStorage.setItem("token", tokenStr);
     setToken(tokenStr);
     setUser(userData);
   }, []);
 
   const logout = useCallback(() => {
-    sessionStorage.removeItem('token');
-    sessionStorage.removeItem('teacherActiveClassId');
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("teacherActiveClassId");
     setToken(null);
     setUser(null);
   }, []);
@@ -48,7 +54,8 @@ export function AuthProvider({ children }) {
     let cancelled = false;
     getCurrentUser()
       .then((profile) => {
-        if (!cancelled) setUser((prev) => (prev ? { ...prev, ...profile } : profile));
+        if (!cancelled)
+          setUser((prev) => (prev ? { ...prev, ...profile } : profile));
       })
       .catch(() => {});
     return () => {
@@ -65,6 +72,6 @@ export function AuthProvider({ children }) {
 
 export function useAuth() {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth must be used within AuthProvider');
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
   return ctx;
 }
