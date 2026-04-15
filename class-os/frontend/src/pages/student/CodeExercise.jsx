@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useParams, Link } from "react-router-dom";
+import { studentClassPath } from "../../utils/classScopePaths.js";
 import { motion, useReducedMotion } from "motion/react";
 import CodeEditor from "../../components/ui/CodeEditor.jsx";
 import CodeHintPanel from "../../components/ai/CodeHintPanel.jsx";
@@ -51,7 +52,7 @@ const blockVariants = {
 
 export default function CodeExercise() {
   const shouldReduce = useReducedMotion();
-  const { id } = useParams();
+  const { classId, id } = useParams();
   const { data: exercise, isLoading } = useQuery({
     queryKey: ["exercise", id],
     queryFn: () => getExercise(id),
@@ -96,7 +97,7 @@ export default function CodeExercise() {
         >
           <p className="text-gray-500">Exercise not found.</p>
           <Link
-            to="/student/curriculum"
+            to={studentClassPath(classId, "curriculum")}
             className="btn-primary mt-4 inline-flex"
           >
             Back to Curriculum
@@ -124,7 +125,10 @@ export default function CodeExercise() {
           className="mb-6"
         >
           <Link
-            to={`/student/lessons/${exercise.lessonId?._id || exercise.lessonId}`}
+            to={studentClassPath(
+              classId,
+              `lessons/${exercise.lessonId?._id || exercise.lessonId}`,
+            )}
             className="text-sm text-brand-600 hover:underline"
           >
             ← Back to Lesson

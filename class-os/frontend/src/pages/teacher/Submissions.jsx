@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 import Editor from "@monaco-editor/react";
 import { Link } from "react-router-dom";
+import { TEACHER_CLASSES_ROUTE } from "../../utils/classScopePaths.js";
 import PageLayout from "../../components/layout/PageLayout.jsx";
 import { useClass } from "../../context/ClassContext.jsx";
 import { getSubmissions, gradeSubmission } from "../../api/submissions.js";
@@ -46,7 +47,7 @@ export default function Submissions() {
       <PageLayout fullWidth>
         <div className="card mx-auto max-w-lg px-4 py-16 text-center">
           <p className="mb-4 text-gray-700">Create a class first.</p>
-          <Link to="/teacher/classes" className="btn-primary">
+          <Link to={TEACHER_CLASSES_ROUTE} className="btn-primary">
             Go to Classes
           </Link>
         </div>

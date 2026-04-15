@@ -1,11 +1,12 @@
 import { useCallback, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { motion, useReducedMotion } from "motion/react";
 import PageLayout from "../../components/layout/PageLayout.jsx";
 import { getLessons } from "../../api/lessons.js";
 import { useLessonProgress } from "../../hooks/useLessonProgress.js";
 import { useClass } from "../../context/ClassContext.jsx";
+import { studentClassPath } from "../../utils/classScopePaths.js";
 
 const spring = { type: "spring", stiffness: 100, damping: 20 };
 const snappy = { type: "spring", stiffness: 280, damping: 26 };
@@ -22,6 +23,7 @@ const cardVariants = {
 
 export default function Curriculum() {
   const shouldReduce = useReducedMotion();
+  const { classId } = useParams();
   const { lessonIds: completed } = useLessonProgress();
   const { activeClassId, classes, isLoading: classesLoading } = useClass();
 
@@ -297,7 +299,10 @@ export default function Curriculum() {
                                 }
                               >
                                 <Link
-                                  to={`/student/lessons/${lesson._id}`}
+                                  to={studentClassPath(
+                                    classId,
+                                    `lessons/${lesson._id}`,
+                                  )}
                                   className={`group flex min-h-[8.5rem] w-full flex-col rounded-xl border p-4 transition-all hover:border-brand-200 hover:shadow-md md:min-h-[9rem] md:p-5 ${
                                     done
                                       ? "border-green-200/90 bg-green-50/60 hover:border-green-300"

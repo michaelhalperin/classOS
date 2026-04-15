@@ -41,6 +41,10 @@ import {
   formatMisconceptionForLesson,
   lessonFormToPayload,
 } from "../../utils/lessonEditorPayload.js";
+import {
+  teacherClassPath,
+  TEACHER_CLASSES_ROUTE,
+} from "../../utils/classScopePaths.js";
 
 // ─── Small reusable pieces ────────────────────────────────────────────────────
 function SectionLabel({ children }) {
@@ -64,7 +68,7 @@ function PanelBlock({ children, className = "" }) {
 // ─── Main component ───────────────────────────────────────────────────────────
 export default function LessonEditor() {
   const { activeClassId, classes, isLoading: classesLoading } = useClass();
-  const { id } = useParams();
+  const { classId, id } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const shouldReduce = useReducedMotion();
@@ -203,7 +207,9 @@ export default function LessonEditor() {
       queryClient.invalidateQueries({ queryKey: ["lessons"] });
       queryClient.invalidateQueries({ queryKey: ["lesson", saved._id] });
       setSelectedLesson(saved._id);
-      navigate(`/teacher/lessons/${saved._id}`, { replace: true });
+      navigate(teacherClassPath(classId, `lessons/${saved._id}`), {
+        replace: true,
+      });
     },
   });
 
@@ -220,7 +226,7 @@ export default function LessonEditor() {
         weekNumber: 1,
         orderIndex: 1,
       });
-      navigate("/teacher/lessons", { replace: true });
+      navigate(teacherClassPath(classId, "lessons"), { replace: true });
     },
   });
 
@@ -293,7 +299,7 @@ export default function LessonEditor() {
       weekNumber: 1,
       orderIndex: 1,
     });
-    navigate("/teacher/lessons", { replace: true });
+    navigate(teacherClassPath(classId, "lessons"), { replace: true });
   };
 
   const runPolish = async (mode) => {
@@ -398,7 +404,7 @@ export default function LessonEditor() {
           <p className="text-sm text-gray-500 mb-6 max-w-xs">
             Create a class first — lessons belong to a class.
           </p>
-          <Link to="/teacher/classes" className="btn-primary">
+          <Link to={TEACHER_CLASSES_ROUTE} className="btn-primary">
             Go to Classes
           </Link>
         </div>
@@ -533,7 +539,9 @@ export default function LessonEditor() {
                         }}
                         onClick={() => {
                           setSelectedLesson(lesson._id);
-                          navigate(`/teacher/lessons/${lesson._id}`);
+                          navigate(
+                            teacherClassPath(classId, `lessons/${lesson._id}`),
+                          );
                           if (!wideLessonLayout) setMobileLessonsOpen(false);
                         }}
                         className={`group relative mx-2 flex cursor-pointer items-center gap-1.5 rounded-lg px-2 py-2 transition-all touch-manipulation ${
@@ -758,7 +766,7 @@ export default function LessonEditor() {
               {selectedLesson && (
                 <span className="flex w-full items-center gap-3 min-[380px]:ml-auto min-[380px]:w-auto">
                   <Link
-                    to={`/teacher/qna/${selectedLesson}`}
+                    to={teacherClassPath(classId, `qna/${selectedLesson}`)}
                     className="touch-manipulation font-medium text-brand-500 hover:text-brand-700"
                   >
                     Q&amp;A →

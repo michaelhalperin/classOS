@@ -5,35 +5,49 @@ import { useClass } from "../../context/ClassContext.jsx";
 import AppLogoMark from "../branding/AppLogoMark.jsx";
 import { NAV_ICONS, SidebarToggleIcon } from "../../utils/icons/navIcons.jsx";
 import { SPRING_SNAPPY as SPRING } from "../../utils/motionSprings.js";
+import {
+  TEACHER_CLASSES_ROUTE,
+  TEACHER_SETTINGS_ROUTE,
+  STUDENT_CLASSES_ROUTE,
+  STUDENT_SETTINGS_ROUTE,
+  teacherClassPath,
+  studentClassPath,
+  useTeacherScopedClassId,
+  useStudentScopedClassId,
+} from "../../utils/classScopePaths.js";
 
 // ─── Nav definitions ──────────────────────────────────────────────────────────
-const teacherLinks = (classReady) => [
-  ...(classReady
+const teacherLinks = (classId) => [
+  ...(classId
     ? [
-        { to: "/teacher/dashboard", label: "Dashboard" },
-        { to: "/teacher/lessons", label: "Lessons" },
-        { to: "/teacher/assignments", label: "Assignments" },
-        { to: "/teacher/submissions", label: "Submissions" },
-        { to: "/teacher/gradebook", label: "Gradebook" },
-        { to: "/teacher/quizzes", label: "Quizzes" },
-        { to: "/teacher/exercises", label: "Exercises" },
-        { to: "/teacher/students", label: "Students" },
-        { to: "/teacher/calendar", label: "Calendar" },
+        { to: teacherClassPath(classId, "dashboard"), label: "Dashboard" },
+        { to: teacherClassPath(classId, "lessons"), label: "Lessons" },
+        { to: teacherClassPath(classId, "assignments"), label: "Assignments" },
+        { to: teacherClassPath(classId, "submissions"), label: "Submissions" },
+        { to: teacherClassPath(classId, "gradebook"), label: "Gradebook" },
+        { to: teacherClassPath(classId, "quizzes"), label: "Quizzes" },
+        { to: teacherClassPath(classId, "exercises"), label: "Exercises" },
+        { to: teacherClassPath(classId, "students"), label: "Students" },
+        { to: teacherClassPath(classId, "calendar"), label: "Calendar" },
       ]
     : []),
-  { to: "/teacher/classes", label: "Classes" },
-  { to: "/teacher/settings", label: "Settings" },
+  { to: TEACHER_CLASSES_ROUTE, label: "Classes" },
+  { to: TEACHER_SETTINGS_ROUTE, label: "Settings" },
 ];
 
-const studentLinks = [
-  { to: "/student/classes", label: "Classes" },
-  { to: "/student/curriculum", label: "Curriculum" },
-  { to: "/student/due", label: "Due" },
-  { to: "/student/homework", label: "Homework" },
-  { to: "/student/quizzes", label: "Quizzes" },
-  { to: "/student/calendar", label: "Calendar" },
-  { to: "/student/progress", label: "Progress" },
-  { to: "/student/settings", label: "Settings" },
+const studentLinks = (classId) => [
+  { to: STUDENT_CLASSES_ROUTE, label: "Classes" },
+  ...(classId
+    ? [
+        { to: studentClassPath(classId, "curriculum"), label: "Curriculum" },
+        { to: studentClassPath(classId, "due"), label: "Due" },
+        { to: studentClassPath(classId, "homework"), label: "Homework" },
+        { to: studentClassPath(classId, "quizzes"), label: "Quizzes" },
+        { to: studentClassPath(classId, "calendar"), label: "Calendar" },
+        { to: studentClassPath(classId, "progress"), label: "Progress" },
+      ]
+    : []),
+  { to: STUDENT_SETTINGS_ROUTE, label: "Settings" },
 ];
 
 // ─── Sidebar ──────────────────────────────────────────────────────────────────
@@ -43,16 +57,33 @@ export default function Navbar({
 }) {
   const { user } = useAuth();
   const location = useLocation();
-  const { classes, activeClassId } = useClass();
+  const { classes } = useClass();
   const shouldReduceMotion = useReducedMotion();
 
   const isTeacher = user?.role === "teacher";
-  const classReady = isTeacher && Boolean(activeClassId) && classes.length > 0;
-  const links = isTeacher ? teacherLinks(classReady) : studentLinks;
+  const teacherClassId = useTeacherScopedClassId();
+  const studentClassId = useStudentScopedClassId();
+  const scopedClassId = isTeacher ? teacherClassId : studentClassId;
+
+  const classReady =
+    Boolean(scopedClassId) &&
+    classes.some((c) => String(c._id) === String(scopedClassId));
+
+  const links = isTeacher
+    ? teacherLinks(classReady ? scopedClassId : null)
+    : studentLinks(classReady ? scopedClassId : null);
 
   const mainLinks = links.filter((l) => !l.to.endsWith("/settings"));
   const settingsLink = links.find((l) => l.to.endsWith("/settings"));
   const layoutSuffix = sidebarCollapsed ? "-rail" : "";
+
+  const logoTo = isTeacher
+    ? scopedClassId && classReady
+      ? teacherClassPath(scopedClassId, "dashboard")
+      : TEACHER_CLASSES_ROUTE
+    : scopedClassId && classReady
+      ? studentClassPath(scopedClassId, "curriculum")
+      : STUDENT_CLASSES_ROUTE;
 
   const displayName =
     (user?.name && String(user.name).trim()) ||
@@ -73,7 +104,7 @@ export default function Navbar({
         }`}
       >
         <Link
-          to={isTeacher ? "/teacher/classes" : "/student/curriculum"}
+          to={logoTo}
           className={`flex items-center group ${sidebarCollapsed ? "flex-col justify-center" : "gap-2.5 min-w-0 flex-1"}`}
           title={sidebarCollapsed ? "Class OS" : undefined}
         >

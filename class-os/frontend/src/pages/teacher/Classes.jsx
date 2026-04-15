@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { createPortal, flushSync } from "react-dom";
+import { createPortal } from "react-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
@@ -7,6 +7,7 @@ import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 import PageLayout from "../../components/layout/PageLayout.jsx";
 import { useClass } from "../../context/ClassContext.jsx";
 import { getClasses, createClass, deleteClass } from "../../api/classes.js";
+import { teacherClassPath } from "../../utils/classScopePaths.js";
 
 const spring = { type: "spring", stiffness: 100, damping: 20 };
 const snappy = { type: "spring", stiffness: 300, damping: 28 };
@@ -125,6 +126,10 @@ export default function ClassesPage() {
     queryFn: getClasses,
   });
 
+  const activeClassLabel = classes.find(
+    (c) => String(c._id) === String(activeClassId),
+  )?.name;
+
   const {
     register,
     handleSubmit,
@@ -136,12 +141,9 @@ export default function ClassesPage() {
     mutationFn: createClass,
     onSuccess: (cls) => {
       qc.invalidateQueries({ queryKey: ["classes"] });
-      flushSync(() => {
-        setActiveClassId(cls._id);
-      });
       setShowForm(false);
       reset();
-      navigate("/teacher/dashboard");
+      navigate(teacherClassPath(cls._id, "dashboard"));
     },
   });
 
@@ -156,11 +158,8 @@ export default function ClassesPage() {
     },
   });
 
-  function enterClass(classId) {
-    flushSync(() => {
-      setActiveClassId(classId);
-    });
-    navigate("/teacher/dashboard");
+  function enterClass(cid) {
+    navigate(teacherClassPath(cid, "dashboard"));
   }
 
   const closeDeleteDialog = useCallback(() => setClassToDelete(null), []);
@@ -196,6 +195,29 @@ export default function ClassesPage() {
           Lessons, Assignments, Students, and the rest only apply to the class
           you selected.
         </motion.p>
+
+        {activeClassId && (
+          <motion.div
+            variants={shouldReduce ? undefined : itemVariants}
+            className="rounded-lg border border-brand-200 bg-brand-50/80 text-brand-950 text-sm px-4 py-3 mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+          >
+            <p>
+              <span className="font-medium">Active class in this browser:</span>{" "}
+              {activeClassLabel ?? "Unknown class"}
+              <span className="text-brand-800/80">
+                {" "}
+                — used for shortcuts and settings until you clear it.
+              </span>
+            </p>
+            <button
+              type="button"
+              className="btn-secondary shrink-0 text-sm"
+              onClick={() => setActiveClassId("")}
+            >
+              Clear active class
+            </button>
+          </motion.div>
+        )}
 
         {!activeClassId && classes.length > 0 && (
           <motion.div
@@ -334,10 +356,21 @@ export default function ClassesPage() {
                 whileHover={
                   shouldReduce ? undefined : { y: -1, transition: snappy }
                 }
-                className="card flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 hover:shadow-md transition-shadow duration-200"
+                className={`card flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 hover:shadow-md transition-shadow duration-200 ${
+                  String(c._id) === String(activeClassId)
+                    ? "border-brand-300 bg-brand-50/40 ring-1 ring-brand-200"
+                    : ""
+                }`}
               >
                 <div>
-                  <p className="font-semibold text-gray-900">{c.name}</p>
+                  <p className="font-semibold text-gray-900">
+                    {c.name}
+                    {String(c._id) === String(activeClassId) && (
+                      <span className="ml-2 text-xs font-medium px-2 py-0.5 rounded-full bg-brand-100 text-brand-700">
+                        Active
+                      </span>
+                    )}
+                  </p>
                   {c.description ? (
                     <p className="text-sm text-gray-500 mt-1">
                       {c.description}

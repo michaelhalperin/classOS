@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, Link } from "react-router-dom";
+import {
+  teacherClassPath,
+  studentClassPath,
+} from "../../utils/classScopePaths.js";
 import { useForm } from "react-hook-form";
 import { motion, useReducedMotion } from "motion/react";
 import PageLayout from "../../components/layout/PageLayout.jsx";
@@ -40,7 +44,7 @@ const cardVariants = {
 
 export default function QnA() {
   const shouldReduce = useReducedMotion();
-  const { lessonId } = useParams();
+  const { classId, lessonId } = useParams();
   const { user } = useAuth();
   const isTeacher = user?.role === "teacher";
   const [expandedId, setExpandedId] = useState(null);
@@ -74,8 +78,8 @@ export default function QnA() {
             <Link
               to={
                 isTeacher
-                  ? `/teacher/lessons/${lessonId}`
-                  : `/student/lessons/${lessonId}`
+                  ? teacherClassPath(classId, `lessons/${lessonId}`)
+                  : studentClassPath(classId, `lessons/${lessonId}`)
               }
               className="text-sm text-brand-600 hover:underline"
             >

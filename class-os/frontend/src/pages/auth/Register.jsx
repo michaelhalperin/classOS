@@ -4,6 +4,10 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { registerUser } from "../../api/auth.js";
 import AppLogoMark from "../../components/branding/AppLogoMark.jsx";
+import {
+  TEACHER_CLASSES_ROUTE,
+  STUDENT_CLASSES_ROUTE,
+} from "../../utils/classScopePaths.js";
 
 export default function Register() {
   const { login } = useAuth();
@@ -23,9 +27,9 @@ export default function Register() {
     onSuccess: (data) => {
       login(data.token, data.user);
       if (data.user.role === "teacher") {
-        navigate("/teacher/classes");
+        navigate(TEACHER_CLASSES_ROUTE);
       } else {
-        navigate("/student/curriculum");
+        navigate(STUDENT_CLASSES_ROUTE);
       }
     },
   });

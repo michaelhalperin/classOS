@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { motion, useReducedMotion } from "motion/react";
 import PageLayout from "../../components/layout/PageLayout.jsx";
 import { useClass } from "../../context/ClassContext.jsx";
@@ -8,6 +8,10 @@ import { getAssignments } from "../../api/assignments.js";
 import { getSubmissions } from "../../api/submissions.js";
 import { getStudents } from "../../api/students.js";
 import DashboardInsights from "../../components/teacher/DashboardInsights.jsx";
+import {
+  teacherClassPath,
+  TEACHER_CLASSES_ROUTE,
+} from "../../utils/classScopePaths.js";
 
 // Animation configs
 const spring = { type: "spring", stiffness: 100, damping: 20 };
@@ -33,6 +37,7 @@ const rowVariants = {
 
 export default function TeacherDashboard() {
   const shouldReduce = useReducedMotion();
+  const { classId } = useParams();
   const { activeClassId, classes, isLoading: classesLoading } = useClass();
 
   const { data: lessons = [] } = useQuery({
@@ -101,7 +106,7 @@ export default function TeacherDashboard() {
             Everything in the teacher area is scoped to the class selected in
             the top bar.
           </p>
-          <Link to="/teacher/classes" className="btn-primary">
+          <Link to={TEACHER_CLASSES_ROUTE} className="btn-primary">
             Create a class
           </Link>
         </div>
@@ -114,10 +119,16 @@ export default function TeacherDashboard() {
       title="Teacher Dashboard"
       actions={
         <div className="flex gap-2">
-          <Link to="/teacher/lessons" className="btn-secondary">
+          <Link
+            to={teacherClassPath(classId, "lessons")}
+            className="btn-secondary"
+          >
             Manage Lessons
           </Link>
-          <Link to="/teacher/assignments" className="btn-primary">
+          <Link
+            to={teacherClassPath(classId, "assignments")}
+            className="btn-primary"
+          >
             + Assignment
           </Link>
         </div>
@@ -278,7 +289,7 @@ export default function TeacherDashboard() {
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-semibold text-gray-800">Lessons</h2>
           <Link
-            to="/teacher/lessons"
+            to={teacherClassPath(classId, "lessons")}
             className="text-sm text-brand-600 hover:underline"
           >
             View all →
@@ -309,7 +320,7 @@ export default function TeacherDashboard() {
               }
             >
               <Link
-                to={`/teacher/lessons/${lesson._id}`}
+                to={teacherClassPath(classId, `lessons/${lesson._id}`)}
                 className="card hover:shadow-md transition-shadow group p-4 block"
               >
                 <span className="text-xs text-brand-500 font-medium">

@@ -33,3 +33,36 @@ export const CALENDAR_PRESET_HEX_COLORS = [
   "#0891b2",
   "#db2777",
 ];
+
+/** @returns {{ r: number; g: number; b: number } | null} */
+export function hexToRgb(hex) {
+  if (!hex || typeof hex !== "string") return null;
+  let h = hex.trim().replace(/^#/, "");
+  if (h.length === 3) {
+    h = h
+      .split("")
+      .map((c) => c + c)
+      .join("");
+  }
+  if (!/^[0-9a-fA-F]{6}$/.test(h)) return null;
+  const n = parseInt(h, 16);
+  return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+}
+
+/**
+ * Inline styles for chips/pills so user-picked hex colors show on the calendar.
+ * Returns null if hex is invalid (caller should fall back to type-based Tailwind).
+ */
+export function customEventColorStyles(hex) {
+  const rgb = hexToRgb(hex);
+  if (!rgb) return null;
+  const { r, g, b } = rgb;
+  return {
+    chip: {
+      backgroundColor: `rgba(${r}, ${g}, ${b}, 0.12)`,
+      borderColor: `rgba(${r}, ${g}, ${b}, 0.42)`,
+      color: "#1f2937",
+    },
+    dot: { backgroundColor: `rgb(${r}, ${g}, ${b})` },
+  };
+}

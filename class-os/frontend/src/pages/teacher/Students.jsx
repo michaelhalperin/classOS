@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 import PageLayout from "../../components/layout/PageLayout.jsx";
 import { useClass } from "../../context/ClassContext.jsx";
@@ -13,6 +13,10 @@ import {
 import { getAssignments } from "../../api/assignments.js";
 import { getSubmissions } from "../../api/submissions.js";
 import { getLessons } from "../../api/lessons.js";
+import {
+  teacherClassPath,
+  TEACHER_CLASSES_ROUTE,
+} from "../../utils/classScopePaths.js";
 
 const listVariants = {
   hidden: { opacity: 0 },
@@ -29,6 +33,7 @@ const rowVariants = {
 
 export default function Students() {
   const qc = useQueryClient();
+  const { classId } = useParams();
   const { activeClassId, classes, isLoading: classesLoading } = useClass();
   const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState("");
@@ -111,7 +116,7 @@ export default function Students() {
           <p className="text-gray-700 mb-4">
             Create a class first, then enroll students in that class.
           </p>
-          <Link to="/teacher/classes" className="btn-primary">
+          <Link to={TEACHER_CLASSES_ROUTE} className="btn-primary">
             Go to Classes
           </Link>
         </div>
@@ -374,7 +379,7 @@ function StudentRow({ student, stats, onRemoveFromClass, removing }) {
 
       <div className="flex flex-wrap items-center gap-2 shrink-0">
         <Link
-          to={`/teacher/students/${student._id}`}
+          to={teacherClassPath(classId, `students/${student._id}`)}
           className="btn-secondary text-sm py-1.5 px-3"
         >
           View profile

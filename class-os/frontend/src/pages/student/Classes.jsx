@@ -1,7 +1,8 @@
-import { flushSync } from "react-dom";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 import PageLayout from "../../components/layout/PageLayout.jsx";
 import { useClass } from "../../context/ClassContext.jsx";
+import { studentClassPath } from "../../utils/classScopePaths.js";
 
 const spring = { type: "spring", stiffness: 100, damping: 20 };
 const snappy = { type: "spring", stiffness: 300, damping: 28 };
@@ -25,12 +26,15 @@ const rowVariants = {
 
 export default function StudentClasses() {
   const shouldReduce = useReducedMotion();
+  const navigate = useNavigate();
   const { classes, activeClassId, setActiveClassId, isLoading } = useClass();
 
-  function selectClass(id) {
-    flushSync(() => {
-      setActiveClassId(id);
-    });
+  const activeClassLabel = classes.find(
+    (c) => String(c._id) === String(activeClassId),
+  )?.name;
+
+  function openClass(id) {
+    navigate(studentClassPath(id, "curriculum"));
   }
 
   return (
@@ -41,10 +45,34 @@ export default function StudentClasses() {
         transition={spring}
         className="text-sm text-gray-500 mb-6 max-w-2xl"
       >
-        These are the classes you're enrolled in. Select a class to set it as
-        active — your Curriculum, Homework, and Due pages will show content for
-        that class.
+        These are the classes you&apos;re enrolled in. Open a class to work in
+        that class — the URL includes the class so links stay scoped to it.
       </motion.p>
+
+      {activeClassId && (
+        <motion.div
+          initial={shouldReduce ? false : { opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={spring}
+          className="rounded-lg border border-brand-200 bg-brand-50/80 text-brand-950 text-sm px-4 py-3 mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+        >
+          <p>
+            <span className="font-medium">Active class in this browser:</span>{" "}
+            {activeClassLabel ?? "Unknown class"}
+            <span className="text-brand-800/80">
+              {" "}
+              — used for shortcuts and settings until you clear it.
+            </span>
+          </p>
+          <button
+            type="button"
+            className="btn-secondary shrink-0 text-sm"
+            onClick={() => setActiveClassId("")}
+          >
+            Clear active class
+          </button>
+        </motion.div>
+      )}
 
       {isLoading ? (
         <div className="space-y-3">
@@ -87,7 +115,7 @@ export default function StudentClasses() {
         >
           <AnimatePresence>
             {classes.map((c) => {
-              const isActive = String(c._id) === activeClassId;
+              const isActive = String(c._id) === String(activeClassId);
               return (
                 <motion.li
                   key={c._id}
@@ -137,23 +165,16 @@ export default function StudentClasses() {
                   </div>
 
                   <div className="shrink-0">
-                    {isActive ? (
-                      <span className="inline-flex items-center gap-1.5 text-sm text-brand-600 font-medium">
-                        <span className="w-2 h-2 rounded-full bg-brand-500 inline-block" />
-                        Currently active
-                      </span>
-                    ) : (
-                      <motion.button
-                        type="button"
-                        onClick={() => selectClass(c._id)}
-                        whileHover={shouldReduce ? undefined : { scale: 1.02 }}
-                        whileTap={shouldReduce ? undefined : { scale: 0.97 }}
-                        transition={snappy}
-                        className="btn-primary text-sm"
-                      >
-                        Switch to this class
-                      </motion.button>
-                    )}
+                    <motion.button
+                      type="button"
+                      onClick={() => openClass(c._id)}
+                      whileHover={shouldReduce ? undefined : { scale: 1.02 }}
+                      whileTap={shouldReduce ? undefined : { scale: 0.97 }}
+                      transition={snappy}
+                      className="btn-primary text-sm"
+                    >
+                      Open class
+                    </motion.button>
                   </div>
                 </motion.li>
               );

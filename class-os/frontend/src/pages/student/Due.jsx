@@ -1,10 +1,11 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { motion, useReducedMotion } from "motion/react";
 import PageLayout from "../../components/layout/PageLayout.jsx";
 import { getAssignments } from "../../api/assignments.js";
 import { useClass } from "../../context/ClassContext.jsx";
+import { studentClassPath } from "../../utils/classScopePaths.js";
 
 const spring = { type: "spring", stiffness: 120, damping: 20 };
 const snappy = { type: "spring", stiffness: 300, damping: 28 };
@@ -52,6 +53,7 @@ function addDays(d, n) {
 
 export default function Due() {
   const shouldReduce = useReducedMotion();
+  const { classId } = useParams();
   const { activeClassId, classes, isLoading: classesLoading } = useClass();
 
   const { data: assignments = [], isLoading } = useQuery({
@@ -140,7 +142,10 @@ export default function Due() {
           whileTap={shouldReduce ? undefined : { scale: 0.98 }}
           transition={snappy}
         >
-          <Link to="/student/homework" className="btn-primary">
+          <Link
+            to={studentClassPath(classId, "homework")}
+            className="btn-primary"
+          >
             Open Homework
           </Link>
         </motion.div>
@@ -295,7 +300,7 @@ function DueSection({ shouldReduce, title, emoji, tone, empty, items }) {
                   transition={snappy}
                 >
                   <Link
-                    to="/student/homework"
+                    to={studentClassPath(classId, "homework")}
                     className="btn-secondary text-xs py-1.5 px-3 inline-block"
                   >
                     Go to Homework

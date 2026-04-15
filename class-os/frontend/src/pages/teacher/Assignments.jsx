@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 import PageLayout from "../../components/layout/PageLayout.jsx";
 import { useClass } from "../../context/ClassContext.jsx";
@@ -12,6 +12,10 @@ import {
   updateAssignment,
   deleteAssignment,
 } from "../../api/assignments.js";
+import {
+  teacherClassPath,
+  TEACHER_CLASSES_ROUTE,
+} from "../../utils/classScopePaths.js";
 
 const spring = { type: "spring", stiffness: 100, damping: 20 };
 const snappy = { type: "spring", stiffness: 280, damping: 26 };
@@ -30,6 +34,7 @@ const itemVariants = {
 export default function Assignments() {
   const qc = useQueryClient();
   const shouldReduce = useReducedMotion();
+  const { classId } = useParams();
   const { activeClassId, classes, isLoading: classesLoading } = useClass();
   const [editing, setEditing] = useState(null);
   const [showForm, setShowForm] = useState(false);
@@ -90,7 +95,7 @@ export default function Assignments() {
       <PageLayout fullWidth>
         <div className="card mx-auto max-w-lg px-4 py-16 text-center">
           <p className="mb-4 text-gray-700">Create a class first.</p>
-          <Link to="/teacher/classes" className="btn-primary">
+          <Link to={TEACHER_CLASSES_ROUTE} className="btn-primary">
             Go to Classes
           </Link>
         </div>
@@ -112,7 +117,10 @@ export default function Assignments() {
             </p>
           </div>
           <div className="flex flex-wrap gap-2 shrink-0">
-            <Link to="/teacher/submissions" className="btn-secondary">
+            <Link
+              to={teacherClassPath(classId, "submissions")}
+              className="btn-secondary"
+            >
               View Submissions
             </Link>
             <button type="button" onClick={handleNew} className="btn-primary">

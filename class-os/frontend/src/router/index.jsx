@@ -1,6 +1,13 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
-import TeacherClassGate from "../components/teacher/TeacherClassGate.jsx";
+import TeacherClassScopeLayout from "../components/layout/TeacherClassScopeLayout.jsx";
+import StudentClassScopeLayout from "../components/layout/StudentClassScopeLayout.jsx";
+import {
+  TEACHER_CLASSES_ROUTE,
+  STUDENT_CLASSES_ROUTE,
+  TEACHER_SETTINGS_ROUTE,
+  STUDENT_SETTINGS_ROUTE,
+} from "../utils/classScopePaths.js";
 
 // Auth
 import Login from "../pages/auth/Login.jsx";
@@ -39,7 +46,7 @@ function ProtectedRoute({ children, role }) {
     return (
       <Navigate
         to={
-          user.role === "teacher" ? "/teacher/classes" : "/student/curriculum"
+          user.role === "teacher" ? TEACHER_CLASSES_ROUTE : STUDENT_CLASSES_ROUTE
         }
         replace
       />
@@ -67,8 +74,8 @@ export default function AppRouter() {
               <Navigate
                 to={
                   user.role === "teacher"
-                    ? "/teacher/classes"
-                    : "/student/curriculum"
+                    ? TEACHER_CLASSES_ROUTE
+                    : STUDENT_CLASSES_ROUTE
                 }
                 replace
               />
@@ -84,8 +91,8 @@ export default function AppRouter() {
               <Navigate
                 to={
                   user.role === "teacher"
-                    ? "/teacher/classes"
-                    : "/student/curriculum"
+                    ? TEACHER_CLASSES_ROUTE
+                    : STUDENT_CLASSES_ROUTE
                 }
                 replace
               />
@@ -97,7 +104,7 @@ export default function AppRouter() {
 
         {/* ── Teacher routes ─────────────────────────────── */}
         <Route
-          path="/teacher/classes"
+          path={TEACHER_CLASSES_ROUTE}
           element={
             <ProtectedRoute role="teacher">
               <TeacherClasses />
@@ -105,7 +112,7 @@ export default function AppRouter() {
           }
         />
         <Route
-          path="/teacher/settings"
+          path={TEACHER_SETTINGS_ROUTE}
           element={
             <ProtectedRoute role="teacher">
               <TeacherSettings />
@@ -113,129 +120,30 @@ export default function AppRouter() {
           }
         />
         <Route
-          path="/teacher/dashboard"
+          path="/teacher/:classId"
           element={
             <ProtectedRoute role="teacher">
-              <TeacherClassGate>
-                <TeacherDashboard />
-              </TeacherClassGate>
+              <TeacherClassScopeLayout />
             </ProtectedRoute>
           }
-        />
-        <Route
-          path="/teacher/lessons"
-          element={
-            <ProtectedRoute role="teacher">
-              <TeacherClassGate>
-                <LessonEditor />
-              </TeacherClassGate>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/teacher/lessons/:id"
-          element={
-            <ProtectedRoute role="teacher">
-              <TeacherClassGate>
-                <LessonEditor />
-              </TeacherClassGate>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/teacher/assignments"
-          element={
-            <ProtectedRoute role="teacher">
-              <TeacherClassGate>
-                <Assignments />
-              </TeacherClassGate>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/teacher/submissions"
-          element={
-            <ProtectedRoute role="teacher">
-              <TeacherClassGate>
-                <Submissions />
-              </TeacherClassGate>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/teacher/exercises"
-          element={
-            <ProtectedRoute role="teacher">
-              <TeacherClassGate>
-                <Exercises />
-              </TeacherClassGate>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/teacher/qna/:lessonId"
-          element={
-            <ProtectedRoute role="teacher">
-              <TeacherClassGate>
-                <QnA />
-              </TeacherClassGate>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/teacher/students"
-          element={
-            <ProtectedRoute role="teacher">
-              <TeacherClassGate>
-                <Students />
-              </TeacherClassGate>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/teacher/students/:id"
-          element={
-            <ProtectedRoute role="teacher">
-              <TeacherClassGate>
-                <StudentDetail />
-              </TeacherClassGate>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/teacher/gradebook"
-          element={
-            <ProtectedRoute role="teacher">
-              <TeacherClassGate>
-                <Gradebook />
-              </TeacherClassGate>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/teacher/quizzes"
-          element={
-            <ProtectedRoute role="teacher">
-              <TeacherClassGate>
-                <TeacherQuizzes />
-              </TeacherClassGate>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/teacher/calendar"
-          element={
-            <ProtectedRoute role="teacher">
-              <TeacherClassGate>
-                <Calendar />
-              </TeacherClassGate>
-            </ProtectedRoute>
-          }
-        />
+        >
+          <Route path="dashboard" element={<TeacherDashboard />} />
+          <Route path="lessons" element={<LessonEditor />} />
+          <Route path="lessons/:id" element={<LessonEditor />} />
+          <Route path="assignments" element={<Assignments />} />
+          <Route path="submissions" element={<Submissions />} />
+          <Route path="exercises" element={<Exercises />} />
+          <Route path="qna/:lessonId" element={<QnA />} />
+          <Route path="students" element={<Students />} />
+          <Route path="students/:id" element={<StudentDetail />} />
+          <Route path="gradebook" element={<Gradebook />} />
+          <Route path="quizzes" element={<TeacherQuizzes />} />
+          <Route path="calendar" element={<Calendar />} />
+        </Route>
 
         {/* ── Student routes ─────────────────────────────── */}
         <Route
-          path="/student/classes"
+          path={STUDENT_CLASSES_ROUTE}
           element={
             <ProtectedRoute role="student">
               <StudentClasses />
@@ -243,55 +151,7 @@ export default function AppRouter() {
           }
         />
         <Route
-          path="/student/curriculum"
-          element={
-            <ProtectedRoute role="student">
-              <Curriculum />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/student/lessons/:id"
-          element={
-            <ProtectedRoute role="student">
-              <LessonView />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/student/homework"
-          element={
-            <ProtectedRoute role="student">
-              <Homework />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/student/due"
-          element={
-            <ProtectedRoute role="student">
-              <Due />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/student/exercises/:id"
-          element={
-            <ProtectedRoute role="student">
-              <CodeExercise />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/student/qna/:lessonId"
-          element={
-            <ProtectedRoute role="student">
-              <QnA />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/student/settings"
+          path={STUDENT_SETTINGS_ROUTE}
           element={
             <ProtectedRoute role="student">
               <StudentSettings />
@@ -299,29 +159,23 @@ export default function AppRouter() {
           }
         />
         <Route
-          path="/student/progress"
+          path="/student/:classId"
           element={
             <ProtectedRoute role="student">
-              <StudentProgress />
+              <StudentClassScopeLayout />
             </ProtectedRoute>
           }
-        />
-        <Route
-          path="/student/quizzes"
-          element={
-            <ProtectedRoute role="student">
-              <StudentQuizzes />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/student/calendar"
-          element={
-            <ProtectedRoute role="student">
-              <Calendar />
-            </ProtectedRoute>
-          }
-        />
+        >
+          <Route path="curriculum" element={<Curriculum />} />
+          <Route path="lessons/:id" element={<LessonView />} />
+          <Route path="homework" element={<Homework />} />
+          <Route path="due" element={<Due />} />
+          <Route path="exercises/:id" element={<CodeExercise />} />
+          <Route path="qna/:lessonId" element={<QnA />} />
+          <Route path="progress" element={<StudentProgress />} />
+          <Route path="quizzes" element={<StudentQuizzes />} />
+          <Route path="calendar" element={<Calendar />} />
+        </Route>
 
         {/* Default redirect */}
         <Route
@@ -331,8 +185,8 @@ export default function AppRouter() {
               <Navigate
                 to={
                   user.role === "teacher"
-                    ? "/teacher/classes"
-                    : "/student/curriculum"
+                    ? TEACHER_CLASSES_ROUTE
+                    : STUDENT_CLASSES_ROUTE
                 }
                 replace
               />

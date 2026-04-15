@@ -32,6 +32,7 @@ import {
 import {
   CALENDAR_EVENT_TYPE_STYLES as TYPE_CONFIG,
   CALENDAR_PRESET_HEX_COLORS as PRESET_COLORS,
+  customEventColorStyles,
 } from "../../utils/calendarAppearance.js";
 import {
   SPRING_SNAPPY as SPRING,
@@ -69,6 +70,32 @@ function ViewSwitcher({ view, onChange, shouldReduceMotion }) {
 
 function EventPill({ event, onClick, compact = false }) {
   const cfg = TYPE_CONFIG[event.type] || TYPE_CONFIG.custom;
+  const custom =
+    event.type === "custom" ? customEventColorStyles(event.color) : null;
+
+  if (custom) {
+    return (
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          onClick(event);
+        }}
+        title={event.title}
+        style={custom.chip}
+        className="w-full text-left truncate rounded px-1.5 py-0.5 text-[11px] font-medium border hover:brightness-95 transition-all focus-visible:outline focus-visible:outline-1 focus-visible:outline-brand-600"
+      >
+        {!compact && (
+          <span
+            className="inline-block w-1.5 h-1.5 rounded-full mr-1 align-middle"
+            style={custom.dot}
+          />
+        )}
+        {event.title}
+      </button>
+    );
+  }
+
   return (
     <button
       type="button"
@@ -276,22 +303,45 @@ function AgendaView({ events, onEventClick }) {
           <div className="flex-1 py-3 px-4 space-y-2">
             {g.events.map((ev) => {
               const cfg = TYPE_CONFIG[ev.type] || TYPE_CONFIG.custom;
+              const custom =
+                ev.type === "custom" ? customEventColorStyles(ev.color) : null;
               return (
                 <button
                   key={ev._id}
                   type="button"
                   onClick={() => onEventClick(ev)}
-                  className={`w-full text-left rounded-lg border ${cfg.border} ${cfg.light} px-3 py-2 hover:brightness-95 transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-600`}
+                  style={custom ? custom.chip : undefined}
+                  className={
+                    custom
+                      ? "w-full text-left rounded-lg border px-3 py-2 hover:brightness-95 transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-600"
+                      : `w-full text-left rounded-lg border ${cfg.border} ${cfg.light} px-3 py-2 hover:brightness-95 transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-600`
+                  }
                 >
                   <div className="flex items-center gap-2">
                     <span
-                      className={`inline-block w-2 h-2 rounded-full ${cfg.color} shrink-0`}
+                      className={
+                        custom
+                          ? "inline-block w-2 h-2 rounded-full shrink-0"
+                          : `inline-block w-2 h-2 rounded-full ${cfg.color} shrink-0`
+                      }
+                      style={custom ? custom.dot : undefined}
                     />
-                    <span className={`text-[13px] font-semibold ${cfg.text}`}>
+                    <span
+                      className={
+                        custom
+                          ? "text-[13px] font-semibold text-gray-800"
+                          : `text-[13px] font-semibold ${cfg.text}`
+                      }
+                    >
                       {ev.title}
                     </span>
                     <span
-                      className={`ml-auto text-[11px] font-medium px-1.5 py-0.5 rounded ${cfg.light} ${cfg.text} border ${cfg.border}`}
+                      className={
+                        custom
+                          ? "ml-auto text-[11px] font-medium px-1.5 py-0.5 rounded border text-gray-800"
+                          : `ml-auto text-[11px] font-medium px-1.5 py-0.5 rounded ${cfg.light} ${cfg.text} border ${cfg.border}`
+                      }
+                      style={custom ? { ...custom.chip, color: "#1f2937" } : undefined}
                     >
                       {cfg.label}
                     </span>
@@ -330,10 +380,13 @@ function EventModal({
   const shouldReduceMotion = useReducedMotion();
   const qc = useQueryClient();
   const cfg = TYPE_CONFIG[event.type] || TYPE_CONFIG.custom;
+  const headerCustomTint =
+    event.type === "custom" ? customEventColorStyles(event.color) : null;
 
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm({
     defaultValues: {
@@ -345,6 +398,7 @@ function EventModal({
       color: event.color || "#7c3aed",
     },
   });
+  const editSelectedColor = watch("color");
 
   const updateMut = useMutation({
     mutationFn: (data) => updateCalendarEvent(classId, event._id, data),
@@ -396,7 +450,12 @@ function EventModal({
           className={`px-5 py-4 border-b border-gray-100 flex items-center gap-3`}
         >
           <span
-            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${cfg.light} ${cfg.text} border ${cfg.border}`}
+            className={
+              headerCustomTint
+                ? "inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold border"
+                : `inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${cfg.light} ${cfg.text} border ${cfg.border}`
+            }
+            style={headerCustomTint ? headerCustomTint.chip : undefined}
           >
             {cfg.label}
           </span>
@@ -493,8 +552,13 @@ function EventModal({
                         className="sr-only"
                       />
                       <span
-                        className="block w-6 h-6 rounded-full border-2 border-white shadow ring-2 ring-transparent transition-all"
-                        style={{ backgroundColor: c }}
+                        className="block w-6 h-6 rounded-full border-2 transition-all"
+                        style={{
+                          backgroundColor: c,
+                          borderColor: editSelectedColor === c ? "#1e40af" : "white",
+                          boxShadow:
+                            editSelectedColor === c ? `0 0 0 2px ${c}` : undefined,
+                        }}
                       />
                     </label>
                   ))}

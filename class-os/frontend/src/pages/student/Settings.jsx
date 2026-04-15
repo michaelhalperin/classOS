@@ -6,10 +6,17 @@ import ProfileSettings from "../../components/settings/ProfileSettings.jsx";
 import { getLessons } from "../../api/lessons.js";
 import { useLessonProgress } from "../../hooks/useLessonProgress.js";
 import { useClass } from "../../context/ClassContext.jsx";
+import {
+  studentClassPath,
+  STUDENT_CLASSES_ROUTE,
+} from "../../utils/classScopePaths.js";
 
 const spring = { type: "spring", stiffness: 100, damping: 20 };
 
 function CurriculumAside({ activeClassId, done, total, shouldReduce }) {
+  const curriculumTo = activeClassId
+    ? studentClassPath(activeClassId, "curriculum")
+    : STUDENT_CLASSES_ROUTE;
   const pct = total > 0 ? Math.round((done / total) * 100) : 0;
 
   if (!activeClassId) {
@@ -37,7 +44,7 @@ function CurriculumAside({ activeClassId, done, total, shouldReduce }) {
           lessons, your progress will show here.
         </p>
         <Link
-          to="/student/curriculum"
+          to={curriculumTo}
           className="mt-4 inline-flex text-sm font-semibold text-brand-600 hover:text-brand-700 hover:underline"
         >
           Open curriculum →
@@ -83,7 +90,7 @@ function CurriculumAside({ activeClassId, done, total, shouldReduce }) {
           )}
         </div>
         <Link
-          to="/student/curriculum"
+          to={curriculumTo}
           className="mt-5 inline-flex items-center gap-1 text-sm font-semibold text-brand-600 hover:text-brand-700 hover:underline"
         >
           View lessons

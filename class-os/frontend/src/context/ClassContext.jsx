@@ -46,13 +46,10 @@ export function ClassProvider({ children }) {
     enabled: isTeacher || isStudent,
   });
 
-  // Auto-select the only class when there's exactly one, or clear if deleted.
+  // Clear stored class if it was removed; active class comes from URL when scoped.
   useEffect(() => {
     if (!classes.length) return;
-    if (!activeClassId) {
-      if (classes.length === 1) setActiveClassId(classes[0]._id);
-      return;
-    }
+    if (!activeClassId) return;
     const valid = classes.some((c) => String(c._id) === activeClassId);
     if (!valid) setActiveClassId("");
   }, [classes, activeClassId, setActiveClassId]);

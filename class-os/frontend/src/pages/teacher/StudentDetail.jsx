@@ -12,9 +12,10 @@ import { getSubmissions, gradeSubmission } from "../../api/submissions.js";
 import { getAssignments } from "../../api/assignments.js";
 import { getLessons } from "../../api/lessons.js";
 import { getQuestions } from "../../api/qna.js";
+import { teacherClassPath } from "../../utils/classScopePaths.js";
 
 export default function StudentDetail() {
-  const { id } = useParams();
+  const { id, classId } = useParams();
   const navigate = useNavigate();
   const qc = useQueryClient();
   const { activeClassId } = useClass();
@@ -62,7 +63,7 @@ export default function StudentDetail() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["students", activeClassId] });
       qc.invalidateQueries({ queryKey: ["classes"] });
-      navigate("/teacher/students");
+      navigate(teacherClassPath(classId, "students"));
     },
   });
 
@@ -94,7 +95,10 @@ export default function StudentDetail() {
       <PageLayout>
         <div className="text-center py-20">
           <p className="text-gray-500">Student not found.</p>
-          <Link to="/teacher/students" className="btn-primary mt-4 inline-flex">
+          <Link
+            to={teacherClassPath(classId, "students")}
+            className="btn-primary mt-4 inline-flex"
+          >
             Back to Students
           </Link>
         </div>
@@ -109,7 +113,7 @@ export default function StudentDetail() {
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-gray-400 mb-6">
           <Link
-            to="/teacher/students"
+            to={teacherClassPath(classId, "students")}
             className="hover:text-brand-600 transition-colors"
           >
             Students

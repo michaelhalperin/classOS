@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { motion, useReducedMotion } from "motion/react";
 import PageLayout from "../../components/layout/PageLayout.jsx";
 import { getLessons } from "../../api/lessons.js";
@@ -7,6 +7,7 @@ import { getAssignments } from "../../api/assignments.js";
 import { getSubmissions } from "../../api/submissions.js";
 import { useLessonProgress } from "../../hooks/useLessonProgress.js";
 import { useClass } from "../../context/ClassContext.jsx";
+import { studentClassPath } from "../../utils/classScopePaths.js";
 
 const spring = { type: "spring", stiffness: 100, damping: 20 };
 
@@ -24,6 +25,7 @@ const itemVariants = {
 
 export default function StudentProgress() {
   const shouldReduce = useReducedMotion();
+  const { classId } = useParams();
   const { activeClassId, classes, isLoading: classesLoading } = useClass();
   const { lessonIds: completedIds } = useLessonProgress();
 
@@ -227,7 +229,7 @@ export default function StudentProgress() {
                     Lesson Progress
                   </h2>
                   <Link
-                    to="/student/curriculum"
+                    to={studentClassPath(classId, "curriculum")}
                     className="text-sm font-medium text-brand-600 hover:underline"
                   >
                     Curriculum →
@@ -301,7 +303,7 @@ export default function StudentProgress() {
                   <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                     <h2 className="font-semibold text-gray-800">Assignments</h2>
                     <Link
-                      to="/student/homework"
+                      to={studentClassPath(classId, "homework")}
                       className="text-sm font-medium text-brand-600 hover:underline"
                     >
                       Homework →
@@ -401,7 +403,7 @@ export default function StudentProgress() {
                         ))}
                       </ul>
                       <Link
-                        to="/student/homework"
+                        to={studentClassPath(classId, "homework")}
                         className="mt-3 block text-sm font-medium text-red-600 hover:underline"
                       >
                         Submit now →
@@ -544,7 +546,7 @@ export default function StudentProgress() {
                       })}
                   </div>
                   <Link
-                    to="/student/homework"
+                    to={studentClassPath(classId, "homework")}
                     className="mt-3 block text-sm font-medium text-brand-600 hover:underline"
                   >
                     All homework →

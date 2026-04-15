@@ -2,6 +2,7 @@ import { useState, useEffect, useLayoutEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useParams, Link } from "react-router-dom";
+import { studentClassPath } from "../../utils/classScopePaths.js";
 import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -34,7 +35,7 @@ const blockVariants = {
 
 export default function LessonView() {
   const shouldReduce = useReducedMotion();
-  const { id } = useParams();
+  const { classId, id } = useParams();
   const mainColumnScrollRef = useMainColumnScrollRef();
 
   const {
@@ -81,8 +82,9 @@ export default function LessonView() {
   });
 
   const { data: lessons = [] } = useQuery({
-    queryKey: ["lessons"],
-    queryFn: () => getLessons(),
+    queryKey: ["lessons", classId],
+    queryFn: () => getLessons(classId),
+    enabled: Boolean(classId),
   });
 
   const { data: exercises = [] } = useQuery({
@@ -194,7 +196,7 @@ export default function LessonView() {
         >
           <p className="text-gray-500">Lesson not found.</p>
           <Link
-            to="/student/curriculum"
+            to={studentClassPath(classId, "curriculum")}
             className="btn-primary mt-4 inline-flex"
           >
             Back to Curriculum
@@ -241,7 +243,7 @@ export default function LessonView() {
           className="flex items-center gap-2 text-sm text-gray-400 mb-6"
         >
           <Link
-            to="/student/curriculum"
+            to={studentClassPath(classId, "curriculum")}
             className="hover:text-brand-600 transition-colors"
           >
             Curriculum
@@ -346,7 +348,7 @@ export default function LessonView() {
                   {isDone ? "✓ Complete" : "Mark Complete"}
                 </button>
                 <Link
-                  to={`/student/qna/${id}`}
+                  to={studentClassPath(classId, `qna/${id}`)}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-gray-200 text-sm text-gray-600 hover:border-brand-400 hover:text-brand-600 transition-colors bg-white"
                 >
                   💬 Q&A
@@ -389,7 +391,7 @@ export default function LessonView() {
                 {exercises.map((ex) => (
                   <Link
                     key={ex._id}
-                    to={`/student/exercises/${ex._id}`}
+                    to={studentClassPath(classId, `exercises/${ex._id}`)}
                     title={`Open code exercise in the editor: ${ex.title}`}
                     aria-label={`Open code exercise: ${ex.title}, language ${ex.language}`}
                     className="group inline-flex max-w-full min-w-[12rem] items-center gap-3 rounded-xl border border-emerald-200/90 bg-gradient-to-br from-white to-emerald-50/40 px-3 py-2 text-left shadow-sm transition-all hover:border-emerald-400 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
@@ -607,7 +609,7 @@ export default function LessonView() {
         >
           {prevLesson ? (
             <Link
-              to={`/student/lessons/${prevLesson._id}`}
+              to={studentClassPath(classId, `lessons/${prevLesson._id}`)}
               className="btn-secondary"
             >
               ← {prevLesson.title}
@@ -617,7 +619,7 @@ export default function LessonView() {
           )}
           {nextLesson ? (
             <Link
-              to={`/student/lessons/${nextLesson._id}`}
+              to={studentClassPath(classId, `lessons/${nextLesson._id}`)}
               className="btn-primary"
               onClick={() => {
                 if (!isDone) setLessonCompleted(id, true);
@@ -626,7 +628,10 @@ export default function LessonView() {
               Next: {nextLesson.title} →
             </Link>
           ) : (
-            <Link to="/student/curriculum" className="btn-primary">
+            <Link
+              to={studentClassPath(classId, "curriculum")}
+              className="btn-primary"
+            >
               Back to Curriculum ✓
             </Link>
           )}
