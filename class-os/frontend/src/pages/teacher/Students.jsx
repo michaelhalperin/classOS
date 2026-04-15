@@ -317,6 +317,7 @@ export default function Students() {
               <motion.div key={student._id} variants={rowVariants} layout>
                 <StudentRow
                   student={student}
+                  classId={classId || activeClassId}
                   stats={stats}
                   onRemoveFromClass={() => {
                     if (
@@ -338,7 +339,11 @@ export default function Students() {
   );
 }
 
-function StudentRow({ student, stats, onRemoveFromClass, removing }) {
+function StudentRow({ student, classId, stats, onRemoveFromClass, removing }) {
+  const profileTo = classId
+    ? teacherClassPath(classId, `students/${student._id}`)
+    : TEACHER_CLASSES_ROUTE;
+
   return (
     <div className="card flex flex-col lg:flex-row lg:items-center gap-4 hover:shadow-md transition-shadow duration-200">
       <div className="w-11 h-11 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center font-bold text-base shrink-0">
@@ -379,7 +384,7 @@ function StudentRow({ student, stats, onRemoveFromClass, removing }) {
 
       <div className="flex flex-wrap items-center gap-2 shrink-0">
         <Link
-          to={teacherClassPath(classId, `students/${student._id}`)}
+          to={profileTo}
           className="btn-secondary text-sm py-1.5 px-3"
         >
           View profile

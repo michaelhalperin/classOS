@@ -57,13 +57,14 @@ export default function Navbar({
 }) {
   const { user } = useAuth();
   const location = useLocation();
-  const { classes } = useClass();
+  const { classes, activeClassId } = useClass();
   const shouldReduceMotion = useReducedMotion();
 
   const isTeacher = user?.role === "teacher";
   const teacherClassId = useTeacherScopedClassId();
   const studentClassId = useStudentScopedClassId();
-  const scopedClassId = isTeacher ? teacherClassId : studentClassId;
+  const routeScopedClassId = isTeacher ? teacherClassId : studentClassId;
+  const scopedClassId = routeScopedClassId || activeClassId;
 
   const classReady =
     Boolean(scopedClassId) &&
