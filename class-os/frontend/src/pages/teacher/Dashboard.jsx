@@ -117,6 +117,7 @@ export default function TeacherDashboard() {
   return (
     <PageLayout
       title="Teacher Dashboard"
+      fullWidth
       actions={
         <div className="flex gap-2">
           <Link
@@ -284,7 +285,7 @@ export default function TeacherDashboard() {
         initial={shouldReduce ? false : { opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.45, duration: 0.3 }}
-        className="mt-8"
+        className="mt-8 pb-10"
       >
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-semibold text-gray-800">Lessons</h2>
@@ -309,7 +310,7 @@ export default function TeacherDashboard() {
           }
           initial={shouldReduce ? false : "hidden"}
           animate="visible"
-          className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3"
+          className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3"
         >
           {recentLessons.map((lesson) => (
             <motion.div

@@ -38,6 +38,7 @@ export default function Students() {
   const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState("");
   const [newCreds, setNewCreds] = useState(null);
+  const [studentToRemove, setStudentToRemove] = useState(null);
 
   const { data: students = [], isLoading } = useQuery({
     queryKey: ["students", activeClassId],
@@ -83,6 +84,7 @@ export default function Students() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["students", activeClassId] });
       qc.invalidateQueries({ queryKey: ["classes"] });
+      setStudentToRemove(null);
     },
   });
 
@@ -319,15 +321,7 @@ export default function Students() {
                   student={student}
                   classId={classId || activeClassId}
                   stats={stats}
-                  onRemoveFromClass={() => {
-                    if (
-                      window.confirm(
-                        `Remove ${student.name} from this class? They will keep their account.`,
-                      )
-                    ) {
-                      removeMutation.mutate(student._id);
-                    }
-                  }}
+                  onRemoveFromClass={() => setStudentToRemove(student)}
                   removing={removeMutation.isPending}
                 />
               </motion.div>
@@ -335,6 +329,60 @@ export default function Students() {
           })}
         </motion.div>
       )}
+
+      <AnimatePresence>
+        {studentToRemove && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4"
+            onClick={() => setStudentToRemove(null)}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 8, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 8, scale: 0.98 }}
+              transition={{ type: "spring", stiffness: 280, damping: 28 }}
+              className="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-6 shadow-xl"
+              role="alertdialog"
+              aria-modal="true"
+              aria-labelledby="remove-student-title"
+              aria-describedby="remove-student-desc"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3
+                id="remove-student-title"
+                className="text-lg font-semibold text-gray-900"
+              >
+                Remove from class?
+              </h3>
+              <p id="remove-student-desc" className="mt-2 text-sm text-gray-600">
+                Remove <strong>{studentToRemove.name}</strong> from this class?
+                Their account will stay active.
+              </p>
+              <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                <button
+                  type="button"
+                  className="btn-secondary w-full sm:w-auto"
+                  onClick={() => setStudentToRemove(null)}
+                  disabled={removeMutation.isPending}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="btn-danger w-full sm:w-auto"
+                  disabled={removeMutation.isPending}
+                  onClick={() => removeMutation.mutate(studentToRemove._id)}
+                >
+                  {removeMutation.isPending ? "Removing…" : "Remove student"}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </PageLayout>
   );
 }

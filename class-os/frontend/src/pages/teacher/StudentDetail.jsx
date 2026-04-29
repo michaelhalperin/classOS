@@ -1,13 +1,11 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 import Editor from "@monaco-editor/react";
 import PageLayout from "../../components/layout/PageLayout.jsx";
 import { useClass } from "../../context/ClassContext.jsx";
-import { getStudent, updateStudent } from "../../api/students.js";
-import { removeStudentFromClass } from "../../api/classes.js";
+import { getStudent } from "../../api/students.js";
 import { getSubmissions, gradeSubmission } from "../../api/submissions.js";
 import { getAssignments } from "../../api/assignments.js";
 import { getLessons } from "../../api/lessons.js";
@@ -19,52 +17,27 @@ export default function StudentDetail() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const { activeClassId } = useClass();
+  const scopedClassId = classId || activeClassId;
   const [activeTab, setActiveTab] = useState("overview"); // overview | submissions | activity
-  const [editing, setEditing] = useState(false);
 
   const { data: student, isLoading: loadingStudent } = useQuery({
     queryKey: ["student", id],
     queryFn: () => getStudent(id),
   });
   const { data: allSubs = [], isLoading: loadingSubs } = useQuery({
-    queryKey: ["submissions", activeClassId],
-    queryFn: () => getSubmissions(activeClassId),
-    enabled: Boolean(activeClassId),
+    queryKey: ["submissions", scopedClassId],
+    queryFn: () => getSubmissions(scopedClassId),
+    enabled: Boolean(scopedClassId),
   });
   const { data: assignments = [] } = useQuery({
-    queryKey: ["assignments", activeClassId],
-    queryFn: () => getAssignments(activeClassId),
-    enabled: Boolean(activeClassId),
+    queryKey: ["assignments", scopedClassId],
+    queryFn: () => getAssignments(scopedClassId),
+    enabled: Boolean(scopedClassId),
   });
   const { data: lessons = [] } = useQuery({
-    queryKey: ["lessons", activeClassId],
-    queryFn: () => getLessons(activeClassId),
-    enabled: Boolean(activeClassId),
-  });
-
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm();
-
-  const updateMutation = useMutation({
-    mutationFn: (data) => updateStudent(id, data),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["student", id] });
-      qc.invalidateQueries({ queryKey: ["students", activeClassId] });
-      setEditing(false);
-    },
-  });
-
-  const removeFromClassMutation = useMutation({
-    mutationFn: () => removeStudentFromClass(activeClassId, id),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["students", activeClassId] });
-      qc.invalidateQueries({ queryKey: ["classes"] });
-      navigate(teacherClassPath(classId, "students"));
-    },
+    queryKey: ["lessons", scopedClassId],
+    queryFn: () => getLessons(scopedClassId),
+    enabled: Boolean(scopedClassId),
   });
 
   // This student's submissions only
@@ -84,15 +57,15 @@ export default function StudentDetail() {
     mySubs.map((s) => [String(s.assignmentId?._id || s.assignmentId), s]),
   );
 
-  if (loadingStudent)
+  if (loadingStudent || (scopedClassId && loadingSubs))
     return (
-      <PageLayout>
+      <PageLayout fullWidth>
         <LoadingSkeleton />
       </PageLayout>
     );
   if (!student)
     return (
-      <PageLayout>
+      <PageLayout fullWidth>
         <div className="text-center py-20">
           <p className="text-gray-500">Student not found.</p>
           <Link
@@ -108,8 +81,8 @@ export default function StudentDetail() {
   const tabs = ["overview", "submissions", "activity"];
 
   return (
-    <PageLayout>
-      <div className="max-w-4xl mx-auto">
+    <PageLayout fullWidth>
+      <div className="w-full">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-gray-400 mb-6">
           <Link
@@ -130,88 +103,20 @@ export default function StudentDetail() {
                 {student.name[0].toUpperCase()}
               </div>
               <div>
-                {editing ? (
-                  <form
-                    onSubmit={handleSubmit(updateMutation.mutate)}
-                    className="space-y-2"
-                  >
-                    <input
-                      {...register("name", { required: "Name required" })}
-                      defaultValue={student.name}
-                      className="input text-lg font-semibold"
-                      placeholder="Full name"
-                    />
-                    <input
-                      {...register("email", { required: "Email required" })}
-                      defaultValue={student.email}
-                      type="email"
-                      className="input text-sm"
-                      placeholder="Email"
-                    />
-                    <div className="flex gap-2 pt-1">
-                      <button
-                        type="submit"
-                        className="btn-primary text-sm py-1.5"
-                        disabled={updateMutation.isPending}
-                      >
-                        {updateMutation.isPending ? "Saving…" : "Save"}
-                      </button>
-                      <button
-                        type="button"
-                        className="btn-secondary text-sm py-1.5"
-                        onClick={() => setEditing(false)}
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </form>
-                ) : (
-                  <>
-                    <h1 className="text-2xl font-bold text-gray-900">
-                      {student.name}
-                    </h1>
-                    <p className="text-gray-500">{student.email}</p>
-                    <p className="text-xs text-gray-400 mt-1">
-                      Joined{" "}
-                      {new Date(student.createdAt).toLocaleDateString("en-US", {
-                        month: "long",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
-                    </p>
-                  </>
-                )}
+                <h1 className="text-2xl font-bold text-gray-900">
+                  {student.name}
+                </h1>
+                <p className="text-gray-500">{student.email}</p>
+                <p className="text-xs text-gray-400 mt-1">
+                  Joined{" "}
+                  {new Date(student.createdAt).toLocaleDateString("en-US", {
+                    month: "long",
+                    day: "numeric",
+                    year: "numeric",
+                  })}
+                </p>
               </div>
             </div>
-
-            {!editing && (
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setEditing(true)}
-                  className="btn-secondary text-sm"
-                >
-                  Edit
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (
-                      window.confirm(
-                        `Remove ${student.name} from this class? They will keep their account.`,
-                      )
-                    ) {
-                      removeFromClassMutation.mutate();
-                    }
-                  }}
-                  disabled={removeFromClassMutation.isPending || !activeClassId}
-                  className="btn-secondary text-sm"
-                >
-                  {removeFromClassMutation.isPending
-                    ? "Removing…"
-                    : "Remove from class"}
-                </button>
-              </div>
-            )}
           </div>
 
           {/* Stat pills */}
@@ -286,7 +191,7 @@ export default function StudentDetail() {
               <SubmissionsTab
                 subs={mySubs}
                 studentId={id}
-                activeClassId={activeClassId}
+                activeClassId={scopedClassId}
               />
             )}
             {activeTab === "activity" && <ActivityTab subs={mySubs} />}
@@ -660,7 +565,7 @@ function MiniStat({ label, value, total, color }) {
 
 function LoadingSkeleton() {
   return (
-    <div className="max-w-4xl mx-auto space-y-4 animate-pulse">
+    <div className="w-full space-y-4 animate-pulse">
       <div className="h-4 bg-gray-200 rounded w-32 mb-6" />
       <div className="card flex gap-4">
         <div className="w-16 h-16 rounded-full bg-gray-200" />

@@ -104,19 +104,18 @@ export default function Navbar({
           sidebarCollapsed ? "flex-col px-2" : "px-4 justify-between"
         }`}
       >
-        <Link
-          to={logoTo}
-          className={`flex items-center group ${sidebarCollapsed ? "flex-col justify-center" : "gap-2.5 min-w-0 flex-1"}`}
-          title={sidebarCollapsed ? "Class OS" : undefined}
-        >
-          <motion.div
-            whileHover={shouldReduceMotion ? {} : { scale: 1.06 }}
-            transition={SPRING}
-            className="shrink-0 flex items-center justify-center"
+        {!sidebarCollapsed && (
+          <Link
+            to={logoTo}
+            className="flex items-center group gap-2.5 min-w-0 flex-1"
           >
-            <AppLogoMark height={sidebarCollapsed ? 32 : 36} />
-          </motion.div>
-          {!sidebarCollapsed && (
+            <motion.div
+              whileHover={shouldReduceMotion ? {} : { scale: 1.06 }}
+              transition={SPRING}
+              className="shrink-0 flex items-center justify-center"
+            >
+              <AppLogoMark height={36} />
+            </motion.div>
             <div className="leading-tight min-w-0">
               <div className="text-[14px] font-semibold text-gray-900 tracking-tight">
                 Class OS
@@ -127,8 +126,8 @@ export default function Navbar({
                 {isTeacher ? "Teacher" : "Student"}
               </div>
             </div>
-          )}
-        </Link>
+          </Link>
+        )}
         {onToggleSidebarCollapsed && (
           <motion.button
             type="button"
@@ -199,8 +198,8 @@ export default function Navbar({
         {/* User chip */}
         {user && (
           <div
-            className={`mt-2 mx-1 flex min-w-0 items-center gap-2.5 rounded-lg border border-gray-100 bg-gray-50 py-2 ${
-              sidebarCollapsed ? "px-1" : "px-2"
+            className={`mt-2 mx-1 flex min-w-0 items-center rounded-lg border border-gray-100 bg-gray-50 py-2 ${
+              sidebarCollapsed ? "justify-center px-1" : "gap-2.5 px-2"
             }`}
           >
             <div
@@ -209,18 +208,7 @@ export default function Navbar({
             >
               {initialLetter}
             </div>
-            {sidebarCollapsed ? (
-              <div className="min-w-0 flex-1 text-left">
-                <div className="truncate text-[11px] font-medium leading-tight text-gray-800">
-                  {displayName}
-                </div>
-                {displayEmail && (
-                  <div className="truncate text-[10px] leading-tight text-gray-400">
-                    {displayEmail}
-                  </div>
-                )}
-              </div>
-            ) : (
+            {!sidebarCollapsed && (
               <div className="min-w-0 flex-1">
                 <div className="truncate text-[12px] font-medium text-gray-800">
                   {displayName}

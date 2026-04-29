@@ -37,33 +37,6 @@ function fmtSec(totalSeconds) {
   return `${h}h ${m % 60}m`;
 }
 
-function downloadNudgeCsv(insights) {
-  if (!insights?.nudgeList?.length) return;
-  const rows = [["name", "email", "reasons"].join(",")].concat(
-    insights.nudgeList.map((r) =>
-      [
-        `"${(r.name || "").replace(/"/g, '""')}"`,
-        `"${(r.email || "").replace(/"/g, '""')}"`,
-        `"${(r.reasons || []).join("; ").replace(/"/g, '""')}"`,
-      ].join(","),
-    ),
-  );
-  const blob = new Blob([rows.join("\n")], { type: "text/csv;charset=utf-8" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "nudge-list.csv";
-  a.click();
-  URL.revokeObjectURL(a.href);
-}
-
-function mailtoNudge(insights) {
-  if (!insights?.nudgeList?.length) return;
-  const emails = insights.nudgeList
-    .map((r) => encodeURIComponent(r.email))
-    .join(",");
-  window.location.href = `mailto:?bcc=${emails}&subject=${encodeURIComponent("Class check-in")}`;
-}
-
 export default function DashboardInsights({ classId }) {
   const shouldReduce = useReducedMotion();
   const {
@@ -117,31 +90,9 @@ export default function DashboardInsights({ classId }) {
           initial={shouldReduce ? false : { opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ ...spring, delay: 0.02 }}
-          className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4"
+          className="mb-4"
         >
           <h2 className="font-semibold text-gray-800">Class health</h2>
-          <div className="flex flex-wrap gap-2">
-            <motion.button
-              type="button"
-              className="btn-secondary text-sm py-1.5"
-              onClick={() => downloadNudgeCsv(ins)}
-              whileHover={shouldReduce ? undefined : { scale: 1.02 }}
-              whileTap={shouldReduce ? undefined : { scale: 0.98 }}
-              transition={snappy}
-            >
-              Export nudge list (CSV)
-            </motion.button>
-            <motion.button
-              type="button"
-              className="btn-secondary text-sm py-1.5"
-              onClick={() => mailtoNudge(ins)}
-              whileHover={shouldReduce ? undefined : { scale: 1.02 }}
-              whileTap={shouldReduce ? undefined : { scale: 0.98 }}
-              transition={snappy}
-            >
-              Open email (BCC all)
-            </motion.button>
-          </div>
         </motion.div>
         <motion.div
           variants={shouldReduce ? undefined : sectionVariants}
